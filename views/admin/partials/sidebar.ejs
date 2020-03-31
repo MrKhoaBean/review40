@@ -1,0 +1,33 @@
+<script src="js/jquery.min.js"></script>
+
+
+<!-- start sidebar -->
+<div class="sidebar" style="overflow: hidden;">
+    <!-- start with head -->
+    <div class="head" style="overflow: hidden;">
+        <div class="logo">
+            <img src="img/logo.svg" alt="" style="height: 200px;width: 100px;position: absolute; top:-4%; left: 24%; z-index: 1;">
+        </div>
+        <button class="btn btn-danger" data-toggle="modal" data-target="#exampleModal" style="z-index: 2;">+ Create new Link</button>
+    </div>
+    <!-- end with head -->
+    <!-- start the list -->
+    <div id="list" style="overflow: hidden;">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a href="/" class="nav-link"><i class="fa fa-fire"></i>Dashboard</a></li>
+            <li class="nav-item"><a href="quanliuser" class="nav-link"><i class="fa fa-user"></i>quản lí user</a></li>
+            <li class="nav-item"><a href="quanliadmin" class="nav-link"><span style="font-size: 18px;" class="material-icons mr-1">verified_user</span>quản lí admin</a>
+            </li>
+            <li class="nav-item"><a href="checkcmt" class="nav-link"><i class="fa fa-edit"></i>kiểm tra bình luận</a></li>
+            <li class="nav-item"><a href="listlink" class="nav-link"><i class="fa fa-link"></i>Danh sách link</a></li>
+            <li class="nav-item"><a href="profile" class="nav-link"><i class="fa fa-users"></i>Chỉnh sửa thông tin</a>
+            </li>
+        </ul>
+    </div>
+    <!-- end the list -->
+</div>
+<!-- end sidebar -->
+
+<script type="text/javascript">
+    $("#list li a[href='<%=href%>']").addClass('active');
+</script>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- start linking  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <!-- icon -->
+    <link rel="icon" href="img/log.png">
+    <!-- end linking -->
+    <title>Kiếm tiền 4.0 - admin</title>
+</head>
+
+<body>
+    <!-- start admin -->
+    <section id="admin">
+        <%- include('partials/sidebar.ejs', {href: '/'}) %>
+        <!-- start content -->
+        <div class="content">
+            <!-- start content head -->
+            <div class="head">
+                <!-- head top -->
+                <div class="top">
+                    <div class="left">
+                        <button id="on" class="btn btn-info"><i class="fa fa-bars"></i></button>
+                        <button id="off" class="btn btn-info hide"><i class="fa fa-align-left"></i></button>
+                    </div>
+                    <div class="right">
+                        <div class="dropdown">
+                            <button class="btn btn-info dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admin</button>
+                            <div class="dropdown-menu" aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item" href="#">Setting</a>
+                                <a class="dropdown-item" href="#">Log Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end head top -->
+                <!-- start head bottom -->
+                <%-include('partials/head_bottom.ejs', {href: '/'})%>
+                <!-- end head bottom -->
+            </div>
+            <!-- end content head -->
+            <!-- start with the real content -->
+            <div id="real">
+                <div class="row">
+                    <!-- start head content         -->
+                    <div class="col-lg-4">
+                        <!-- Regster Users -->
+                        <div class="regsterUsers">
+                            <div class="card">
+                                <div class="card-top">
+                                    <h1>912</h1>
+                                    <i class="fa fa-users"></i>
+                                </div>
+                                <div class="card-bottom">
+                                    <p>Thành viên trên hệ thống Kiếm Tiền 4.0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end  Regster Users-->
+                    </div>
+                    <div class="col-lg-8">
+                        <div id="money">
+                            <div class="card">
+                                <div id="chart" style="width:100%; height:270px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end head content -->
+                    <!-- start analytics -->
+                    <div class="col-lg-4">
+                        <div class="analytics">
+                            <div class="card">
+                                <div class="icon"><i class="fa fa-video"></i></div>
+                                <div class="text">
+                                    <h1>984</h1>
+                                    <p>Link Video</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="analytics">
+                            <div class="card">
+                                <div class="icon"><i class="fab fa-vimeo-v"></i></div>
+                                <div class="text">
+                                    <h1>1455</h1>
+                                    <p>Link bình luận</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="analytics">
+                            <div class="card">
+                                <div class="icon"><i class="fa fa-users"></i></div>
+                                <div class="text">
+                                    <h1>32</h1>
+                                    <p>Thành viên</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end the real content -->
+        </div>
+        <!-- end content -->
+    </section>
+    <!-- end admin -->
+    <!-- start screpting -->
+    <%-include('partials/modal.html')%>
+    <%-include('partials/footer.html')%>
+    <script src="js/highcharts.js"></script>
+    <script src="js/chart.js"></script>
+    <!-- end screpting -->
+</body>
+
+</html>

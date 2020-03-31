@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- start linking  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+    <!-- icon -->
+    <link rel="icon" href="img/log.png">
+    <!-- end linking -->
+    <title>Kiếm tiền 4.0 - admin</title>
+</head>
+
+<body>
+
+
+    <!-- start admin -->
+    <section id="admin">
+        
+        <%- include('partials/sidebar.ejs', {href: 'checkcmt'}) %>
+
+        <!-- start content -->
+        <div class="content">
+            <!-- start content head -->
+            <div class="head">
+                <!-- head top -->
+                <div class="top">
+                    <div class="left">
+                        <button id="on" class="btn btn-info"><i class="fa fa-bars"></i></button>
+                        <button id="off" class="btn btn-info hide"><i class="fa fa-align-left"></i></button>
+                    </div>
+                    <div class="right">
+                        <div class="dropdown">
+                            <button class="btn btn-info dropdown-toggle" id="userDropdown" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">Admin</button>
+                            <div class="dropdown-menu" aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item" href="#">Setting</a>
+                                <a class="dropdown-item" href="#">Log Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end head top -->
+                <!-- start head bottom -->
+                <%-include('partials/head_bottom.ejs', {href: 'checkcmt'})%>
+                <!-- end head bottom -->
+            </div>
+            <!-- end content head -->
+            <!-- start with the real content -->
+            <div id="real">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-dark lift">
+                            <div class="card-body">
+                                <div class="flickity-button-outset p-1"  data-flickity='{"draggable": true,"pageDots": true}'>
+                                    <div class="wrap-question col-12 p-5" style="width: 100%;">
+                                        <h4 class="card-title text-body" >Link bình luận (Nhớ rút gọn ký tự nếu quá dài): <a  target="_blank" href="https://www.youtube.com/watch?v=Sxn_seKdy7g&lc=UgxEIZxy6JKPHLBn2cx4AaABAg" style="text-transform: lowercase; word-wrap: break-word;">https://www.youtube.com/watch?v=Sxn_seKdy7g...</a> </h4>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Tên người dùng: binh27112004
+                                        </p>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Số tiền được nhận khi bình luận đúng: 1,000đ
+                                        </p>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Nội dung cần bình luận: <code>abc hahahaha hay lắm ịt ẹ m</code>
+                                        </p>
+                                        
+                                        <div style="width: 100%; text-align: center;">
+                                            <button class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
+                                            <button class="btn btn-danger">Bình Luận Sai</button>   
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="wrap-question col-12 p-5">
+                                        <h4 class="card-title text-body">Link bình luận: <a  target="_blank" href="https://www.facebook.com/groups/linuxteamvietnam2018/permalink/818694508649552/?comment_id=818699691982367" style="text-transform: lowercase;word-wrap: break-word;">https://www.facebook.com/groups/linuxteamvietnam2018/...</a> </h4>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Tên người dùng: khoabean2004
+                                        </p>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Số tiền được nhận khi bình luận đúng: 100,000đ
+                                        </p>
+                                        <p class="card-text" style="text-transform: unset;">
+                                            Nội dung cần bình luận: <code>aaaaa phê</code>
+                                        </p>
+                                        
+                                        <div style="width: 100%; text-align: center;">
+                                            <button class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
+                                            <button class="btn btn-danger">Bình Luận Sai</button>   
+                                        </div>
+                                        
+                                    </div>
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end the real content -->
+        </div>
+        <!-- end content -->
+    </section>
+    <!-- end admin -->
+    <!-- start screpting -->
+    <%-include('partials/modal.html')%>
+    <%-include('partials/footer.html')%>
+    <script src="js/highcharts.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+    <!-- end screpting -->
+</body>
+
+</html>

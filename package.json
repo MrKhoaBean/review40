@@ -1,0 +1,26 @@
+{
+  "name": "kiemtien40",
+  "version": "1.0.0",
+  "description": "website kiếm tiền 4.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrKhoaBean/kiemtien40.git"
+  },
+  "author": "KB",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MrKhoaBean/kiemtien40/issues"
+  },
+  "homepage": "https://github.com/MrKhoaBean/kiemtien40#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.0.2",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.2"
+  }
+}
