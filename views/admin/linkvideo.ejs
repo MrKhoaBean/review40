@@ -22,33 +22,17 @@
 	<!-- start admin -->
 	<section id="admin">
 		
-		<%- include('partials/sidebar.ejs', {href: 'linkvideo'}) %>
+		<%- include('partials/sidebar.ejs', {href}) %>
 
 		<!-- start content -->
 		<div class="content">
 			<!-- start content head -->
 			<div class="head">
                 <!-- head top -->
-                <div class="top">
-                    <div class="left">
-                        <button id="on" class="btn btn-info"><i class="fa fa-bars"></i></button>
-                        <button id="off" class="btn btn-info hide"><i class="fa fa-align-left"></i></button>
-                    </div>
-                    <div class="right">
-                        <div class="dropdown">
-                            <button class="btn btn-info dropdown-toggle" id="userDropdown" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">Admin</button>
-                            <div class="dropdown-menu" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">Profile</a>
-                                <a class="dropdown-item" href="#">Setting</a>
-                                <a class="dropdown-item" href="#">Log Out</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <%-include('partials/head_top.ejs', {name})%>
                 <!-- end head top -->
                 <!-- start head bottom -->
-                <%-include('partials/head_bottom.ejs', {href: 'linkvideo'})%>
+                <%-include('partials/head_bottom.ejs', {href})%>
                 <!-- end head bottom -->
             </div>
 			<!-- end content head -->
