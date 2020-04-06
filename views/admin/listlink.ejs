@@ -82,25 +82,33 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>Video</td>
-                                            <td>https://www.youtube.com/watch?v=lUrmyU1cnxU</td>
-                                            <td>1,000đ</td>
-                                            <td>
-                                                <button class="btn btn-primary mb-2">Xóa</button>
-                                                <button class="btn btn-primary mb-2">Sửa</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Comment</td>
-                                            <td>https://....</td>
-                                            <td>100,000đ</td>
-                                            <td>
-                                                <button class="btn btn-primary mb-2">Xóa</button>
-                                                <button class="btn btn-primary mb-2">Sửa</button>
-                                            </td>
-                                        </tr>
-                                        
+                                        <% for (let link of list) {
+                                            let type = link.minutes?"Video":"Comment";
+                                            let {id, url, bonus} = link;
+                                            bonus = bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                            if (type == "Video") { %>
+                                                <tr id="<%-type%><%-id%>_tr">
+                                                    <td>Video</td>
+                                                    <td id="<%-type%><%-id%>row-1"><%-url%></td>
+                                                    <td id="<%-type%><%-id%>row-2"><%-bonus%>đ</td>
+                                                    <td>
+                                                        <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
+                                                        <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
+                                                    </td>
+                                                </tr>
+                                            <%}
+                                            if (type == "Comment") { %>
+                                                <tr id="<%-type%><%-id%>_tr">
+                                                    <td>Comment</td>
+                                                    <td id="<%-type%><%-id%>row-1"><%-url%></td>
+                                                    <td id="<%-type%><%-id%>row-2"><%-bonus%>đ</td>
+                                                    <td>
+                                                        <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
+                                                        <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
+                                                    </td>
+                                                </tr>
+                                            <%}%>
+                                        <%}%>
                                     </tbody>
                                     <tfoot>
                                         <tr>
@@ -124,8 +132,9 @@
     <!-- start screpting -->
     <%-include('partials/modal.html')%>
     <%-include('partials/footer.html')%>
-    <script src="js/highcharts.js"></script>
-    <script src="js/chart.js"></script>
+    <!-- <script src="js/highcharts.js"></script>
+    <script src="js/chart.js"></script> -->
+    <script src="js/listlink.js"></script>
     <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
     <script>$(document).ready( function () {

@@ -19,13 +19,9 @@
 </head>
 
 <body>
-
-
     <!-- start admin -->
     <section id="admin">
-        
         <%- include('partials/sidebar.ejs', {href}) %>
-
         <!-- start content -->
         <div class="content">
             <!-- start content head -->
@@ -44,44 +40,36 @@
                     <div class="col-12">
                         <div class="card shadow-dark lift">
                             <div class="card-body">
-                                <div class="flickity-button-outset p-1"  data-flickity='{"draggable": true,"pageDots": true}'>
-                                    <div class="wrap-question col-12 p-5" style="width: 100%;">
-                                        <h4 class="card-title text-body" >Link bình luận (Nhớ rút gọn ký tự nếu quá dài): <a  target="_blank" href="https://www.youtube.com/watch?v=Sxn_seKdy7g&lc=UgxEIZxy6JKPHLBn2cx4AaABAg" style="text-transform: lowercase; word-wrap: break-word;">https://www.youtube.com/watch?v=Sxn_seKdy7g...</a> </h4>
-                                        <p class="card-text" style="text-transform: unset;">
-                                            Tên người dùng: binh27112004
-                                        </p>
-                                        <p class="card-text" style="text-transform: unset;">
-                                            Số tiền được nhận khi bình luận đúng: 1,000đ
-                                        </p>
-                                        <p class="card-text" style="text-transform: unset;">
-                                            Nội dung cần bình luận: <code>abc hahahaha hay lắm ịt ẹ m</code>
-                                        </p>
-                                        
-                                        <div style="width: 100%; text-align: center;">
-                                            <button class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
-                                            <button class="btn btn-danger">Bình Luận Sai</button>   
-                                        </div>
-                                        
+                                <div class="flickity-button-outset p-1" data-flickity='{"draggable": true,"pageDots": true}'>
+                                    <% if (listCheck.length == 0) { %>
+                                    <div class="wrap-question col-12 p-5" style="width: 100%; text-align: center;color: #7b01e9;">
+                                        <h2>HIỆN KHÔNG CÓ BÌNH LUẬN NÀO CẦN DUYỆT!</h2>
                                     </div>
-                                    <div class="wrap-question col-12 p-5">
-                                        <h4 class="card-title text-body">Link bình luận: <a  target="_blank" href="https://www.facebook.com/groups/linuxteamvietnam2018/permalink/818694508649552/?comment_id=818699691982367" style="text-transform: lowercase;word-wrap: break-word;">https://www.facebook.com/groups/linuxteamvietnam2018/...</a> </h4>
+                                    <% } %>
+                                    <% for (let i = 0; i<listCheck.length; i++) {
+													 let {id, url, username, bonus, noidung} = listCheck[i];
+													 bonus = bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+												%>
+                                    <div id="form<%-id%>" class="wrap-question col-12 p-5" style="width: 100%;">
+                                        <h4 class="card-title text-body">Link bình luận: <a target="_blank" href="<%-url%>" style="text-transform: lowercase; word-wrap: break-word;">CLICK ME</a> </h4>
                                         <p class="card-text" style="text-transform: unset;">
-                                            Tên người dùng: khoabean2004
+                                            Tên người dùng:
+                                            <%-username%>
                                         </p>
                                         <p class="card-text" style="text-transform: unset;">
-                                            Số tiền được nhận khi bình luận đúng: 100,000đ
+                                            Số tiền được nhận khi bình luận đúng:
+                                            <%-bonus%>đ
                                         </p>
                                         <p class="card-text" style="text-transform: unset;">
-                                            Nội dung cần bình luận: <code>aaaaa phê</code>
+                                            Nội dung cần bình luận: <code>
+                                                <%-noidung%></code>
                                         </p>
-                                        
                                         <div style="width: 100%; text-align: center;">
-                                            <button class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
-                                            <button class="btn btn-danger">Bình Luận Sai</button>   
+                                            <button onclick="duyet('<%-id%>', true)" class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
+                                            <button onclick="duyet('<%-id%>', false)" class="btn btn-danger">Bình Luận Sai</button>
                                         </div>
-                                        
                                     </div>
-                                   
+                                    <%}%>
                                 </div>
                             </div>
                         </div>
@@ -96,8 +84,9 @@
     <!-- start screpting -->
     <%-include('partials/modal.html')%>
     <%-include('partials/footer.html')%>
-    <script src="js/highcharts.js"></script>
-    <script src="js/chart.js"></script>
+    <!-- <script src="js/highcharts.js"></script>
+	 <script src="js/chart.js"></script> -->
+    <script src="js/checkcmt.js"></script>
     <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
     <!-- end screpting -->
 </body>

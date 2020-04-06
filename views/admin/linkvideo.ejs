@@ -48,23 +48,23 @@
 									
 								</div>
 								<div class="col-lg-12">
-									<form action="#" class="form-horizontal">
+									<form id="form_linkvideo" class="form-horizontal">
 										<div class="form-group">
 											<label for="control-demo-1" class="col-sm-3">Link video: </label>
 											<div class="col-sm-12">
-												<input type="url" placeholder="https://www.youtube.com/watch?v=xxx" id="control-demo-1" class="form-control">
+												<input name="url" type="url" placeholder="https://www.youtube.com/watch?v=xxx" id="control-demo-1" class="form-control">
 											</div>
 										</div><!-- .form-group -->
 										<div class="form-group">
 											<label for="control-demo-1" class="col-sm-3">Số phút cần view: </label>
 											<div class="col-sm-12">
-												<input type="number"  id="control-demo-1" class="form-control">
+												<input name="minutes" type="number" id="control-demo-1" class="form-control">
 											</div>
 										</div><!-- .form-group -->
 										<div class="form-group mb-3">
 											<label for="control-demo-1" class="col-12">Số tiền cho một bình luận (đơn vị <code>Đồng</code>): </label>
 											<div class="col-sm-12">
-												<input type="number" placeholder="1000" id="control-demo-1" class="form-control">
+												<input name="bonus" type="number" placeholder="1000" id="control-demo-1" class="form-control">
 											</div>
 										</div>
 										<div style="width: 100%; text-align: center;" class="mt-3">
@@ -83,11 +83,13 @@
 		<!-- end content -->
 	</section>
 	<!-- end admin -->
+	
     <!-- start screpting -->
     <%-include('partials/modal.html')%>
     <%-include('partials/footer.html')%>
-	<script src="js/highcharts.js"></script>
-	<script src="js/chart.js"></script>
+	<script src="js/linkvideo.js"></script> -->
+	<!-- <script src="js/highcharts.js"></script>
+	<script src="js/chart.js"></script> -->
 	<!-- end screpting -->
 </body>
 

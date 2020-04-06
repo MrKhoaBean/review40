@@ -23,7 +23,7 @@
 //     });
 // });
 
-$(function () {
+$(function() {
     "use strict";
 
     var myChart = Highcharts.chart('chart', {
@@ -34,7 +34,7 @@ $(function () {
             text: 'THỐNG KÊ'
         },
         xAxis: {
-            categories: ['1', '2', '3','4', '5', '6', '7', '8', '9', '10', '11', '12']
+            categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
         },
         yAxis: {
             title: {
@@ -47,4 +47,3 @@ $(function () {
         }]
     });
 });
-

@@ -1,18 +1,107 @@
+class SQLMessage {
+    constructor() {
+        this.arr = [];
+    }
+
+    add(text) {
+        if (!!text)
+            this.arr.push(text);
+    }
+
+    toArray() {
+        return this.arr;
+    }
+}
+
+function validForm(body, checkList, res) { // test lại những ô cần thiết có rổng hay ko
+    let isValid = true;
+    for (let e of checkList)
+        if (!body[e]) {
+            res.send({
+                alert: 'dialog',
+                data: {
+                    icon: 'success',
+                    title: 'Bạn đã sql injection thành công!',
+                    text: 'mà đợi đã :D'
+                }
+            })
+            isValid = false;
+            break;
+        }
+    return isValid;
+}
+
+function addMemberCountByMonth(month, value) {
+    connect.query('SELECT `membersByMonth` FROM `features` LIMIT 1', (error, result) => {
+        let membersByMonth = JSON.parse(result[0].membersByMonth);
+        membersByMonth[month] += value;
+        connect.query('UPDATE `features` SET `membersByMonth` = ?', [JSON.stringify(membersByMonth)]);
+    });
+}
+
+function addLinkCount(type) {
+    connect.query('UPDATE `features` SET `link_' + type + '` = `link_' + type + '` + 1');
+}
+
+function MRES(str) { //mysql_real_escape_string
+    return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function(char) {
+        switch (char) {
+            case "\0":
+                return "\\0";
+            case "\x08":
+                return "\\b";
+            case "\x09":
+                return "\\t";
+            case "\x1a":
+                return "\\z";
+            case "\n":
+                return "\\n";
+            case "\r":
+                return "\\r";
+            case "\"":
+            case "'":
+            case "\\":
+            case "%":
+                return "\\" + char; // prepends a backslash to backslash, percent,
+                // and double/single quotes
+            default:
+                return char;
+        }
+    });
+}
+
+function checkError(error, result, where) {
+    let ignoreList = ['ER_DUP_ENTRY'];
+    if (error) {
+        if (ignoreList.indexOf(error.code) == -1) {
+            console.log(error);
+            console.log('Lỗi ở chỗ: ' + where);
+        }
+        return error.code; // nếu bị lỗi hoặc query trả về mảng rỗng thì trả về true
+    } else {
+        return null;
+    }
+}
+
 const express = require('express');
 const app = express();
 const ejs = require('ejs');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const md5 = require('md5');
+const { v1: uuidv1 } = require('uuid');
 const path = require('path');
-const PORT = 3000;
+const fs = require('fs');
+const PORT = 7777;
 
 const mysql = require('mysql');
 
 const connect = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: ""
+    password: "",
+    database: 'kiemtien40'
 });
 
 connect.connect(function(err) {
@@ -20,15 +109,52 @@ connect.connect(function(err) {
     console.log("Connected!");
 });
 
+var lines = process.stdout.getWindowSize()[1];
+for (var i = 0; i < lines; i++) {
+    console.log('\r\n');
+}
+
+let checkLoggedIn = function(req, res, next) {
+    if (!req.session.username) // kiểm tra login chưa nếu chưa thì phải login
+        res.redirect('/login');
+    else {
+        next();
+    }
+}
+
+function prepareStaticFlat(config) {
+    let { dir, checkLogin, checkPermission } = config;
+    fs.readdirSync(path.join(__dirname, 'views', dir)).forEach(file => {
+        let regex = /^(.*)\.ejs$/;
+
+        if (regex.test(file)) { // nếu file đó là file ejs
+            let subname = regex.exec(file)[1]; // lấy tên file (bỏ đuôi .ejs)
+            app.use('/' + subname, express.static(path.join(__dirname, 'views', dir)));
+
+            if (checkLogin)
+                app.use('/' + subname, checkLoggedIn);
+
+            if (checkPermission)
+                app.use('/' + subname, (req, res, next) => {
+                    if (req.session.permission == dir)
+                        next();
+                    else
+                        res.send('Bạn không phải là ' + dir);
+                })
+
+        }
+    })
+}
+
 app.set('view engine', 'ejs')
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json()); // support json encoded bodies
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'views/admin')));
 app.use(session({
     resave: true,
     saveUninitialized: true,
     secret: 'somesecret',
-    cookie: { maxAge: 60000 }
+    cookie: { maxAge: 1000 * 60 * 60 }
 }));
 
 app.listen(PORT, () => {
@@ -36,118 +162,655 @@ app.listen(PORT, () => {
 })
 
 
-app.use('/', (req, res, next) => {
-    if (!req.session.name)
-        req.session.name = 'khoa dep trai';
-    next();
+let flatDir = [{
+        dir: 'trangchu',
+        checkLogin: false,
+        checkPermission: false
+    },
+    {
+        dir: 'admin',
+        checkLogin: true,
+        checkPermission: true
+    },
+    {
+        dir: 'member',
+        checkLogin: true,
+        checkPermission: true
+    }
+];
+
+for (let e of flatDir) {
+    prepareStaticFlat(e);
+}
+
+app.use((req, res, next) => {
+
+    next()
 })
 
 app.get('/', (req, res) => {
-    //query và xử lí membersAddByMonth
-    let quyen = 'admin';
-    res.render(`${quyen}/index.ejs`, {
-        href: '/',
-        name: req.session.name,
-        memberCount: 100,
-        linkvideoCount: 10,
-        linkcmtCount: 5,
-        membersAddByMonth: [1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0]
-    });
+    if (!req.session.username)
+        res.redirect('/trangchu');
+    else
+        res.redirect('/dashboard');
+})
+
+app.get('/trangchu', (req, res) => {
+    res.render('trangchu/trangchu.ejs');
+})
+
+app.use('/login', (req, res, next) => {
+    if (req.session.username)
+        res.redirect('/dashboard');
+    else
+        next();
+});
+app.get('/login', (req, res) => {
+    res.render('trangchu/login.ejs');
+})
+app.post('/login', (req, res) => {
+    if (!validForm(req.body, ['username', 'password'], res)) return;
+    let sqlMessages = new SQLMessage();
+    connect.query("SELECT * FROM `account` WHERE `username` = ? AND `password` = ? LIMIT 1", [req.body.username, md5(req.body.password)], (error, result) => {
+        sqlMessages.add(checkError(error, result, 'login'));
+        if (result.length == 1) {
+            let { name, username, permission, verify } = result[0];
+            if (!verify && permission == "member")
+                return res.send({
+                    alert: 'dialog',
+                    data: {
+                        icon: 'error',
+                        title: 'Tài khoản của bạn chưa được duyệt!'
+                    }
+                })
+            req.session.name = name;
+            req.session.username = username;
+            req.session.permission = permission;
+            if (result[0].permission == "admin")
+                res.send({ redirect: '/dashboard' });
+            else {
+                res.send({ redirect: '/dashboard' });
+            }
+        } else {
+            res.send({
+                alert: 'dialog',
+                data: {
+                    icon: 'error',
+                    title: 'Tài khoản hoặc mật khẩu sai!'
+                }
+            })
+        }
+    })
+})
+
+app.get('/register', (req, res) => {
+    res.render('trangchu/register.ejs');
+})
+
+app.post('/register', async (req, res) => {
+    if (!validForm(req.body, ['name', 'email', 'username', 'password'], res)) return;
+    let sqlMessages = new SQLMessage();
+    let { name, username, password, email } = req.body;
+    let madonhang = uuidv1();
+    req.session.tmp = {
+        name,
+        username,
+        password,
+        email,
+        madonhang
+    }
+    connect.query("INSERT INTO `account` (`name`, `username`, `password`, `email`, `madonhang`) VALUES (?, ?, ?, ?, ?)", [name, username, md5(password), email, madonhang], (error, result) => {
+        sqlMessages.add(checkError(error, result, 'register'));
+        if (sqlMessages.toArray().length == 0) {
+            addMemberCountByMonth(new Date(Date.now()).getMonth(), 1); // tăng số lượng member đăng kí trong tháng này
+            res.send({
+                alert: 'dialog',
+                data: {
+                    icon: 'success',
+                    title: 'Bạn đã tạo tài khoản thành công',
+                    text: 'Vui lòng chuyển khoản cho phía bên admin để được duyệt tài khoản!',
+                    preConfirm_stringcode: "location.assign('/confirm')",
+                    confirmButtonText: "Thanh toán ngay!"
+                }
+            })
+        } else {
+            let text = sqlMessages.toArray().toString();
+            if (text == "ER_DUP_ENTRY")
+                text = "Tên tài khoản hoặc địa chỉ Email đã có người sử dụng!";
+            res.send({
+                alert: 'dialog',
+                data: {
+                    icon: 'error',
+                    title: 'Có lỗi!!!',
+                    text
+                }
+            })
+        }
+    })
+})
+
+app.get('/confirm', (req, res) => {
+    if (!req.session.tmp)
+        return res.redirect('/trangchu');
+    let { name, username, password, email, madonhang } = req.session.tmp;
+    req.session.destroy();
+    res.render('trangchu/confirm.ejs', { name, username, password, email, madonhang });
+})
+
+app.get('/dashboard', (req, res) => {
+    //query và xử lí membersMyMonth
+    connect.query("SELECT count(*) FROM `account` WHERE `permission`='member' AND `verify` = '1' UNION ALL SELECT count(*) FROM `linkvideo` UNION ALL SELECT count(*) FROM `linkcmt`", (error, count) => {
+        connect.query("SELECT `membersByMonth` FROM `features`", (error, result) => {
+            let membersAddByMonth = JSON.parse(result[0].membersByMonth);
+            let membersCount = count[0]['count(*)'];
+            let linkvideoCount = count[1]['count(*)'];
+            let linkcmtCount = count[2]['count(*)'];
+            let quyen = req.session.permission;
+            res.render(`${quyen}/dashboard.ejs`, {
+                href: req.url,
+                name: req.session.name,
+                membersAddByMonth,
+                membersCount,
+                linkvideoCount,
+                linkcmtCount
+            });
+        })
+    })
 })
 
 app.get('/quanliuser', (req, res) => {
-    //query và xử lí list user
-    let quyen = 'admin';
-    res.render(`${quyen}/quanliuser.ejs`, {
-        href: 'quanliuser',
-        name: req.session.name,
-        listUser: [{
-                name: 'Khoa ko mlem',
-                job: 'aaaa'
-            },
-            {
-                name: 'binh le',
-                job: 'bbbb'
-            },
-            {
-                name: 'hung',
-                job: 'ccccc'
-            },
-            {
-                name: 'vu hoang anh',
-                job: 'ddddd'
-            },
-            {
-                name: 'le tuan anh',
-                job: 'eeeee'
-            },
-            {
-                name: 'no name',
-                job: 'idk'
-            }
-        ]
+    connect.query("SELECT count(*) FROM `account` WHERE `permission`='member'", (error, result) => {
+        checkError(error, result, 'get page count (member count / 6');
+        let count = result[0]['count(*)'];
+        let quyen = req.session.permission;
+        res.render(`${quyen}/quanliuser.ejs`, {
+            href: req.url,
+            name: req.session.name,
+            count
+        });
+    })
+})
+
+app.get('/quanliuser/getlist', (req, res) => {
+    if (!validForm(req.query, ['page'], res)) return;
+    let { page } = req.query;
+    if (isNaN(page)) {
+        res.send('bruh');
+        return;
+    }
+    let offset = (Number(page) - 1) * 6;
+    if (offset < 0) {
+        res.send([]);
+        return;
+    }
+    connect.query("SELECT * FROM `account` WHERE `permission`='member' ORDER BY `id` DESC LIMIT 6 OFFSET ?", [offset], (error, result) => {
+        checkError(error, result, 'get list by page');
+        let listUser = [];
+        for (let user of result) {
+            listUser.push({
+                name: user.name,
+                username: user.username,
+                des: !user.verify ? "<b style='color:red'>Chưa chuyển khoản</b>" : ""
+            })
+        }
+        res.send(listUser);
+    })
+})
+
+app.get('/quanliuser/getalllist', (req, res) => {
+    connect.query("SELECT * FROM `account` WHERE `permission`='member' ORDER BY `id` DESC", (error, result) => {
+        checkError(error, result, 'get all list');
+        let listUser = [];
+        for (let user of result) {
+            listUser.push({
+                name: user.name,
+                username: user.username,
+                des: !user.verify ? "<b style='color:red'>Chưa chuyển khoản</b>" : ""
+            })
+        }
+        res.send(listUser);
+    })
+})
+
+app.post('/quanliuser/duyet', (req, res) => {
+    if (!validForm(req.body, ['madonhang'], res)) return;
+
+    let affectedRows = 0;
+    let failed = false;
+    connect.query("UPDATE `account` SET `verify` = 1 WHERE madonhang = ?", [req.body.madonhang], (error, result) => {
+        checkError(error, result, 'duyet thanh vien');
+
+        affectedRows = result.affectedRows;
+        if (affectedRows > 0)
+            failed = false;
+        else
+            failed = true;
+        connect.query("SELECT `username` FROM `account` WHERE `madonhang` = ? LIMIT 1", [req.body.madonhang], (error, result) => {
+            checkError(error, result, 'tim ten theo ma don hang');
+            let username = "không tìm thấy"
+            if (result.length > 0)
+                username = result[0].username;
+            res.send({
+                username,
+                failed
+            });
+        })
     });
 })
 
-app.post('/quanliuser', (req, res)=>{
-	//
+app.post('/quanliuser/delete', (req, res) => {
+    if (!validForm(req.body, ['username'], res)) return;
+
+    connect.query("DELETE FROM `account` WHERE `username` = ?", [req.body.username], (error, result) => {
+        checkError(error, result, 'xoa account');
+        res.send({
+            success: Boolean(result.affectedRows)
+        })
+        if (result.affectedRows > 0) {
+            addMemberCountByMonth(new Date(Date.now()).getMonth(), -1);
+        }
+    })
 })
+
+//start of quanliadmin
 
 app.get('/quanliadmin', (req, res) => {
-    //query và xử lí 
-    let quyen = 'admin';
-    res.render(`${quyen}/quanliadmin.ejs`, {
-        href: 'quanliadmin',
-        name: req.session.name,
-        listAdmin: [{
-                name: 'alo',
-                job: 'aaaa'
-            },
-            {
-                name: '1',
-                job: 'sssssssssssss'
-            },
-            {
-                name: '2',
-                job: 'rrrrrrrrr'
-            },
-            {
-                name: '3',
-                job: '3333333'
-            },
-            {
-                name: '4',
-                job: 'asdasd'
-            },
-            {
-                name: 'donan jump',
-                job: 'president'
-            }
-        ]
+    connect.query("SELECT count(*) FROM `account` WHERE `permission`='admin'", (error, result) => {
+        checkError(error, result, 'get page count (admin count / 6');
+        let count = result[0]['count(*)'];
+        let quyen = req.session.permission;
+        res.render(`${quyen}/quanliuser.ejs`, {
+            href: req.url,
+            name: req.session.name,
+            count
+        });
+    })
+})
+
+app.get('/quanliadmin/getlist', (req, res) => {
+    if (!validForm(req.query, ['page'], res)) return;
+    let { page } = req.query;
+    if (isNaN(page))
+        return res.send('bruh');
+    let offset = (Number(page) - 1) * 6;
+    if (offset < 0) {
+        res.send([]);
+        return;
+    }
+    connect.query("SELECT * FROM `account` WHERE `permission`='admin' ORDER BY `id` DESC LIMIT 6 OFFSET ?", [offset], (error, result) => {
+        checkError(error, result, 'get list by page - admin');
+        let listAdmin = [];
+        for (let admin of result) {
+            listAdmin.push({
+                name: admin.name,
+                username: admin.username,
+                des: admin.username == req.session.username ? "<b style='color:red'>Đây là bạn  &#9888;</b>" : ""
+            })
+        }
+        let myIndex = listAdmin.findIndex(e => e.username == req.session.username);
+        listAdmin.unshift(listAdmin[myIndex]);
+        listAdmin.splice(myIndex + 1, 1);
+        res.send(listAdmin);
+    })
+})
+
+app.get('/quanliadmin/getalllist', (req, res) => {
+    connect.query("SELECT * FROM `account` WHERE `permission`='admin' ORDER BY `id` DESC", (error, result) => {
+        checkError(error, result, 'get all list');
+        let listAdmin = [];
+        for (let admin of result) {
+            listAdmin.push({
+                name: admin.name,
+                username: admin.username,
+                des: admin.username == req.session.username ? "<b style='color:red'>Đây là bạn  &#9888;</b>" : ""
+            })
+        }
+        let myIndex = listAdmin.findIndex(e => e.username == req.session.username);
+        listAdmin.unshift(listAdmin[myIndex]);
+        listAdmin.splice(myIndex + 1, 1);
+        res.send(listAdmin);
+    })
+})
+
+app.post('/quanliadmin/duyet', (req, res) => {
+    if (!validForm(req.body, ['madonhang'], res)) return;
+
+    let affectedRows = 0;
+    let failed = false;
+    connect.query("UPDATE `account` SET `verify` = 1, `permission` = 'admin' WHERE madonhang = ?", [req.body.madonhang], (error, result) => {
+        checkError(error, result, 'duyet thanh vien - admin');
+
+        affectedRows = result.affectedRows;
+        if (affectedRows > 0)
+            failed = false;
+        else
+            failed = true;
+        connect.query("SELECT `username` FROM `account` WHERE `madonhang` = ? LIMIT 1", [req.body.madonhang], (error, result) => {
+            checkError(error, result, 'tim ten theo ma don hang');
+            let username = "không tìm thấy"
+            if (result.length > 0)
+                username = result[0].username;
+            res.send({
+                username,
+                failed
+            });
+        })
     });
 })
 
+app.post('/quanliadmin/delete', (req, res) => {
+    if (!validForm(req.body, ['username'], res)) return;
+
+    connect.query("DELETE FROM `account` WHERE `username` = ?", [req.body.username], (error, result) => {
+        checkError(error, result, 'xoa account');
+        res.send({
+            success: Boolean(result.affectedRows)
+        })
+        if (result.affectedRows > 0) {
+            addMemberCountByMonth(new Date(Date.now()).getMonth(), -1);
+        }
+    })
+})
+
+//end of quanliadmin
+
 app.get('/checkcmt', (req, res) => {
-    let quyen = 'admin';
-    res.render(`${quyen}/checkcmt.ejs`, { href: 'checkcmt', name: req.session.name });
+    connect.query("SELECT * FROM `duyetcmt` WHERE `verify` = -1 ORDER BY `id` ASC", (error, result) => {
+        checkError(error, result, "lay duyet cmt");
+        let quyen = 'admin';
+        res.render(`${quyen}/checkcmt.ejs`, {
+            href: req.url,
+            name: req.session.name,
+            listCheck: result
+        });
+    })
+
+})
+
+app.post('/checkcmt', (req, res) => {
+    if (!validForm(req.body, ['id', 'method'], res)) return;
+    let { id, method } = req.body;
+    let verify = Number(Boolean(method.toString()));
+    connect.query("UPDATE `duyetcmt` SET `verify` = ? WHERE `id` = ? AND `verify` = -1", [verify, id], (error, result) => {
+        checkError(error, result, "duyet cmt (true/false)");
+        if (result.affectedRows > 0) {
+            res.send({
+                alert: "dialog",
+                data: {
+                    icon: "success"
+                }
+            })
+        } else {
+            res.send({
+                alert: "dialog",
+                data: {
+                    icon: "info",
+                    title: "Thông báo!",
+                    text: "Bình luận này đã được phê duyệt!"
+                }
+            })
+        }
+
+    })
+
 })
 
 app.get('/listlink', (req, res) => {
-    let quyen = 'admin';
-    res.render(`${quyen}/listlink.ejs`, { href: 'listlink', name: req.session.name });
+    let list = [];
+    connect.query("SELECT * FROM `linkvideo` ORDER BY `id` DESC", (error, listVideo) => {
+        connect.query("SELECT * FROM `linkcmt` ORDER BY `id` DESC", (error, listCmt) => {
+            list = listVideo.concat(listCmt);
+            list.sort((a, b) => a.id - b.id);
+            let quyen = 'admin';
+            res.render(`${quyen}/listlink.ejs`, {
+                href: req.url,
+                name: req.session.name,
+                list
+            });
+        })
+    })
+})
+
+app.post('/listlink/delete', (req, res) => {
+    if (!validForm(req.body, ['id', 'type'], res)) return;
+    let { id, type } = req.body;
+    if (['Video', 'Comment'].indexOf(type) == -1)
+        return res.send({
+            alert: "dialog",
+            data: {
+                title: "Lỗi",
+                icon: "error",
+                text: "Hãy thử tải lại trang!"
+            }
+        })
+    type = (type == "Video") ? 'video' : 'cmt';
+    connect.query("DELETE FROM `link" + type + "` WHERE `id` = ?", [id], (error, result) => {
+        checkError(error, result, "xoa link");
+        if (result.affectedRows > 0)
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Thông báo!",
+                    text: "Đã xóa 1 link!",
+                    icon: "info"
+                }
+            })
+        else
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi!",
+                    text: "Không tìm thấy link (có thể đã bị xóa)",
+                    icon: "error"
+                }
+            })
+    })
+})
+
+app.post('/listlink/edit', (req, res) => {
+    if (!validForm(req.body, ['url', 'bonus', 'id', 'type'], res)) return;
+    let { url, bonus, id, type } = req.body;
+    if (isNaN(bonus) || ['Video', 'Comment'].indexOf(type) == -1)
+        return res.send({
+            alert: "dialog",
+            data: {
+                title: "Lỗi",
+                icon: "error",
+                text: "Hãy thử tải lại trang!"
+            }
+        })
+
+    type = (type == "Video") ? 'video' : 'cmt';
+    let sqlmessages = new SQLMessage();
+    connect.query("UPDATE `link" + type + "` SET `url` = ?, `bonus` = ? WHERE `id` = ?", [url, bonus, id], (error, result) => {
+        sqlmessages.add(checkError(error, result, "update link (chinh sua)"));
+        if (sqlmessages.toArray().toString() == "ER_DUP_ENTRY")
+            return res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi!",
+                    text: "Trùng url trước đây!!",
+                    icon: "error",
+                    allowOutsideClick: false
+                }
+            })
+
+        if (result.affectedRows > 0)
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Thành công",
+                    text: "Đã thay đổi!",
+                    icon: "success"
+                }
+            })
+        else
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi!",
+                    text: "Không tìm thấy link (có thể đã bị xóa)",
+                    icon: "error",
+                    allowOutsideClick: false
+                }
+            })
+    })
 })
 
 app.get('/profile', (req, res) => {
-    let quyen = 'admin';
-    res.render(`${quyen}/profile.ejs`, { href: 'profile', name: req.session.name });
+    if (!req.session.username) return res.send('where is username?');
+    connect.query("SELECT * FROM `account` WHERE `username` = ? LIMIT 1", [req.session.username], (error, result) => {
+        checkError(error, result, 'lay profile theo username')
+        let quyen = req.session.permission;
+        let { username, name, email } = result[0];
+        res.render(`${quyen}/profile.ejs`, {
+            href: req.url,
+            username,
+            name,
+            email
+        });
+    })
+
+})
+
+app.post('/profile', (req, res) => {
+    if (!validForm(req.body, ['oldPassword'], res)) return;
+    if (req.body.password)
+        req.body.password = md5(req.body.password);
+    req.body.oldPassword = md5(req.body.oldPassword);
+    let list = ['name', 'username', 'email', 'password']; // password luôn ở cuối nếu không thì khi oldpassword đổi thành password thì mấy thằng phía sau ko đổi đc
+    let queue = list.length;
+    let affected = [];
+    let sqlmessages = new SQLMessage();
+    connect.query("SELECT * FROM `account` WHERE `username` = ? AND `password` = ?", [req.session.username, req.body.oldPassword], (error, result) => {
+        if (result.length <= 0) {
+            return res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi",
+                    text: "Sai mật khẩu!",
+                    icon: "error"
+                }
+            })
+        }
+
+        for (let e of list) {
+            if (!!req.body[e])
+                connect.query("UPDATE `account` SET `" + e + "` = ? WHERE `username` = ? AND `" + e + "` <> ? AND `password` = ?", [req.body[e], req.session.username, req.body[e], req.body.oldPassword], (error, result) => {
+                    if (result.affectedRows > 0) {
+                        if (e == "username")
+                            req.session.username = req.body[e];
+                        affected.push(e);
+                    }
+                    sqlmessages.add(checkError(error, result, 'update thong tin ca nhan'));
+                    queue--;
+                    if (queue == 0) {
+                        if (sqlmessages.length > 0)
+                            res.send({
+                                alert: "dialog",
+                                data: {
+                                    title: "Có lỗi!",
+                                    text: "Lỗi: " + sqlmessages.toArray().toString(),
+                                    icon: "error"
+                                }
+                            });
+                        else
+                            res.send({
+                                alert: "dialog",
+                                data: {
+                                    title: "Thông báo!",
+                                    text: affected.length > 0 ? "Đã cập nhật: " + affected.toString().split(',').join(', ') : "Không có gì thay đổi!",
+                                    icon: "info"
+                                }
+                            });
+                    }
+                });
+            else
+                queue--;
+        }
+
+    })
+
 })
 
 app.get('/linkvideo', (req, res) => {
     let quyen = 'admin';
-    res.render(`${quyen}/linkvideo.ejs`, { href: 'linkvideo', name: req.session.name });
+    res.render(`${quyen}/linkvideo.ejs`, {
+        href: req.url,
+        name: req.session.name
+    });
+})
+
+app.post('/linkvideo', (req, res) => {
+    if (!validForm(req.body, ['url', 'minutes', 'bonus'], res)) return;
+    let { url, minutes, bonus } = req.body;
+    let sqlmessages = new SQLMessage();
+    connect.query("INSERT `linkvideo` (`url`, `minutes`, `bonus`) VALUES (?, ?, ?)", [url, minutes, bonus], (error, result) => {
+        sqlmessages.add(checkError(error, result, 'add link video'));
+        if (sqlmessages.toArray().toString() == "ER_DUP_ENTRY")
+            res.send({
+                alert: "toast",
+                data: {
+                    icon: "error",
+                    title: "Lỗi!!",
+                    text: "Trùng url trước đây"
+                }
+            })
+        else
+            res.send({
+                alert: "toast",
+                data: {
+                    icon: "success",
+                    title: "Thành công!!",
+                    text: "Đã thêm 1 link video"
+                }
+            })
+    })
 })
 
 app.get('/linkcmt', (req, res) => {
     let quyen = 'admin';
-    res.render(`${quyen}/linkcmt.ejs`, { href: 'linkcmt', name: req.session.name });
+    res.render(`${quyen}/linkcmt.ejs`, {
+        href: req.url,
+        name: req.session.name
+    });
 })
+
+app.post('/linkcmt', (req, res) => {
+    if (!validForm(req.body, ['url', 'noidung', 'bonus'], res)) return;
+    let { url, noidung, bonus } = req.body;
+    noidung = escape(noidung).split('%0D%0A');
+    for (let i in noidung)
+        noidung[i] = unescape(noidung[i]);
+    let sqlmessages = new SQLMessage();
+    connect.query("INSERT `linkcmt` (`url`, `noidung`, `bonus`) VALUES (?, ?, ?)", [url, JSON.stringify(noidung), bonus], (error, result) => {
+        sqlmessages.add(checkError(error, result, 'add link binh luan'));
+        if (sqlmessages.toArray().toString() == "ER_DUP_ENTRY")
+            res.send({
+                alert: "toast",
+                data: {
+                    icon: "error",
+                    title: "Lỗi!!",
+                    text: "Trùng url trước đây"
+                }
+            })
+        else
+            res.send({
+                alert: "toast",
+                data: {
+                    icon: "success",
+                    title: "Thành công!!",
+                    text: "Đã thêm 1 link bình luận"
+                }
+            })
+    })
+})
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/trangchu');
+})
+
+app.get('*', function(req, res) {
+    res.send('404 page not found');
+});
