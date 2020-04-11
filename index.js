@@ -89,6 +89,7 @@ const ejs = require('ejs');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const random = require('random');
 const md5 = require('md5');
 const { v1: uuidv1 } = require('uuid');
 const path = require('path');
@@ -136,6 +137,7 @@ function prepareStaticFlat(config) {
 
             if (checkPermission)
                 app.use('/' + subname, (req, res, next) => {
+                    // console.log(req.session.permission);
                     if (req.session.permission == dir)
                         next();
                     else
@@ -191,8 +193,12 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     if (!req.session.username)
         res.redirect('/trangchu');
-    else
-        res.redirect('/dashboard');
+    else {
+        if (req.session.permission == "admin")
+            res.redirect('/dashboard');
+        else
+            res.redirect('/home');
+    }
 })
 
 app.get('/trangchu', (req, res) => {
@@ -200,9 +206,12 @@ app.get('/trangchu', (req, res) => {
 })
 
 app.use('/login', (req, res, next) => {
-    if (req.session.username)
-        res.redirect('/dashboard');
-    else
+    if (req.session.username) {
+        if (req.session.permission == "admin")
+            res.redirect('/dashboard');
+        else
+            res.redirect('/home');
+    } else
         next();
 });
 app.get('/login', (req, res) => {
@@ -229,7 +238,7 @@ app.post('/login', (req, res) => {
             if (result[0].permission == "admin")
                 res.send({ redirect: '/dashboard' });
             else {
-                res.send({ redirect: '/dashboard' });
+                res.send({ redirect: '/home' });
             }
         } else {
             res.send({
@@ -306,6 +315,7 @@ app.get('/dashboard', (req, res) => {
             let linkvideoCount = count[1]['count(*)'];
             let linkcmtCount = count[2]['count(*)'];
             let quyen = req.session.permission;
+            console.log(quyen);
             res.render(`${quyen}/dashboard.ejs`, {
                 href: req.url,
                 name: req.session.name,
@@ -530,10 +540,18 @@ app.get('/checkcmt', (req, res) => {
 app.post('/checkcmt', (req, res) => {
     if (!validForm(req.body, ['id', 'method'], res)) return;
     let { id, method } = req.body;
-    let verify = Number(Boolean(method.toString()));
+    let verify = 0;
+    if (method.toString() == "true")
+        verify = 1;
     connect.query("UPDATE `duyetcmt` SET `verify` = ? WHERE `id` = ? AND `verify` = -1", [verify, id], (error, result) => {
         checkError(error, result, "duyet cmt (true/false)");
         if (result.affectedRows > 0) {
+            if (verify == 1) {
+                connect.query("SELECT * FROM `duyetcmt` WHERE `id` = ?", [id], (error, duyetResult) => {
+                    connect.query("UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?", [duyetResult[0].bonus, duyetResult[0].username]);
+                    console.log('cong them cho user: ' + duyetResult[0].username + ' so tien: ' + duyetResult[0].bonus);
+                })
+            }
             res.send({
                 alert: "dialog",
                 data: {
@@ -805,6 +823,192 @@ app.post('/linkcmt', (req, res) => {
             })
     })
 })
+
+
+
+//========================MEMBER=============================
+
+app.use('/', (req, res, next) => {
+    if (req.session.permission == "member") {
+        connect.query("SELECT `bonus` FROM `duyetcmt` WHERE `username` = ? AND verify = -1", [req.session.username], (error, bonusResult) => {
+            connect.query("SELECT `money` FROM `account` WHERE `username` = ?", [req.session.username], (error, moneyResult) => {
+                req.session.choduyet = 0;
+                for (let e of bonusResult) {
+                    req.session.choduyet += e.bonus;
+                }
+                req.session.money = moneyResult[0].money;
+                next()
+            })
+        })
+    } else
+        next();
+})
+
+app.get('/home', (req, res) => {
+    let quyen = req.session.permission;
+    connect.query("SELECT count(*) FROM `duyetcmt` WHERE `username` = ? AND verify = 1", [req.session.username], (error, result) => {
+        res.render(`${quyen}/home.ejs`, {
+            name: req.session.name,
+            href: '/home',
+            choduyet: req.session.choduyet,
+            money: req.session.money,
+            solinkbinhluan: result[0]['count(*)']
+        });
+    })
+})
+
+app.get('/cmtvideo', (req, res) => {
+    connect.query("SELECT `cmt` FROM `account` WHERE `username` = ?", [req.session.username], (error, account) => {
+        let { cmt } = account[0];
+        try { cmt = JSON.parse(cmt); } catch (e) { cmt = [] }
+        connect.query("SELECT * FROM `linkcmt` ORDER BY `id` ASC", (error, result) => {
+            checkError(error, result, "lay linkcmt cho member");
+            let able = [];
+            let maxCount = 10;
+            let count = 0;
+            for (let r of result) {
+                count++;
+                if (count > maxCount && able.length > 0)
+                    break;
+                let { noidung, bonus, url } = r;
+                if (cmt.indexOf(url) != -1)
+                    continue;
+                try {
+                    noidung = JSON.parse(noidung);
+                    noidung = noidung[random.int(0, noidung.length - 1)];
+                } catch (e) {}
+                able.push({
+                    noidung,
+                    bonus,
+                    url
+                });
+            }
+
+            if (able.length <= 0) {
+                let quyen = req.session.permission;
+                return res.render(`${quyen}/cmtvideo.ejs`, {
+                    name: req.session.name,
+                    href: '/cmtvideo',
+                    choduyet: req.session.choduyet,
+                    money: req.session.money,
+                    none: true
+                });
+            }
+
+            let { noidung, bonus, url } = able[random.int(0, able.length - 1)];
+            req.session.cmtvideo = {
+                noidung,
+                bonus,
+                url
+            }
+
+            let quyen = req.session.permission;
+            res.render(`${quyen}/cmtvideo.ejs`, {
+                name: req.session.name,
+                href: '/cmtvideo',
+                choduyet: req.session.choduyet,
+                money: req.session.money,
+                noidung,
+                bonus,
+                url
+            });
+        })
+    })
+
+})
+
+var addUrl = (req, url) => {
+    return new Promise((resolve, reject) => {
+        connect.query("SELECT `cmt` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
+            checkError(error, result, "doi array cmt");
+            let cmtArr;
+            try { cmtArr = JSON.parse(result[0].cmt); } catch (e) { cmtArr = [] }
+            if (cmtArr.indexOf(url) != -1) {
+                reject();
+            } else {
+                cmtArr.push(url);
+                resolve(cmtArr);
+            }
+        })
+    })
+}
+
+app.post('/cmtvideo', (req, res) => {
+    if (!req.session.cmtvideo)
+        return res.send({
+            alert: "dialog",
+            data: {
+                title: "Lỗi!",
+                text: "Đã gặp lỗi, hãy thử tải lại trang!",
+                icon: "error"
+            }
+        });
+    if (!validForm(req.body, ['cmtUrl'], res)) return;
+    let { noidung, bonus, url } = req.session.cmtvideo;
+    let { cmtUrl } = req.body;
+    addUrl(req, url).then((cmtArr) => {
+        let sqlMessages = new SQLMessage();
+        connect.query("INSERT INTO `duyetcmt` (`url`, `username`, `bonus`, `noidung`) VALUES (?, ?, ?, ?)", [cmtUrl, req.session.username, bonus, noidung], (error, result) => {
+            sqlMessages.add(checkError(error, result, "insert vao bang duyetcmt"));
+
+            if (sqlMessages.toArray().toString() == "ER_DUP_ENTRY")
+                return res.send({
+                    alert: "dialog",
+                    data: {
+                        title: "Lỗi!",
+                        text: "Trùng url cmt trước đây!",
+                        icon: "error"
+                    }
+                });
+
+            req.session.cmtvideo = undefined;
+            connect.query("UPDATE `account` SET `cmt` = ? WHERE `username` = ?", [JSON.stringify(cmtArr), req.session.username], (error, result) => {
+                res.send({
+                    alert: "dialog",
+                    data: {
+                        title: "Thành công!",
+                        text: "Hãy chờ các admin duyệt cmt của bạn!",
+                        icon: "success",
+                        preconfirm_string: "location.assign('.');"
+                    }
+                });
+            })
+
+        })
+    }).catch(() => {
+        res.send({
+            alert: "dialog",
+            data: {
+                title: "Lỗi!",
+                text: "Link cmt này không tồn tại! Hãy thử F5",
+                icon: "error"
+            }
+        });
+    })
+})
+
+app.get('/xemvideo', (req, res) => {
+    let quyen = req.session.permission;
+    res.render(`${quyen}/xemvideo.ejs`, {
+        name: req.session.name,
+        href: '/xemvideo',
+        choduyet: req.session.choduyet,
+        money: req.session.money
+    });
+})
+
+app.get('/ruttien', (req, res) => {
+    let quyen = req.session.permission;
+    res.render(`${quyen}/ruttien.ejs`, {
+        name: req.session.name,
+        href: '/ruttien',
+        choduyet: req.session.choduyet,
+        money: req.session.money
+    });
+})
+
+
+//==================END OF MEMBER==================
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
