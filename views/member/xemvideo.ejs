@@ -42,11 +42,19 @@
                                 Xem Video
                             </div>
                             <div class="card-body">
+                                <% if (typeof(none) == 'undefined' ) {%>
+                                <script>
+                                    var minutes = Number("<%-minutes%>");
+                                    var minutesCount = Number("<%-minutes%>");
+                                </script>
                                 <h5 class="card-title">Xem video dưới đây:</h5>
-                                <p class="card-text">Vui lòng xem video dưới đây trong vòng <code>30</code> giây.</p>
-                                <p class="card-text">Bạn sẽ nhận được <code>10,000đ</code>. Khi xem đủ thời gian</p>
+                                <p class="card-text">Vui lòng xem video dưới đây trong vòng <code><%-minutes%></code> phút.</p>
+                                <p class="card-text">Bạn sẽ nhận được <code><%-bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")%>đ</code> khi xem đủ thời gian</p>
                                 <p class="card-text">LƯU Ý: Tài Khoản sẽ bị khóa nếu phát hiện có hành vi gian lận</p>
-                                <a href="#" class="btn btn-primary">Click để hiển thị video</a>
+                                <a id="showvideo" href="#" onclick="popup('<%-url%>')" class="btn btn-primary">Click để hiển thị video</a>
+                                <%} else {%>
+                                <h5 class="card-title">Hiện không còn video nào, vui lòng quay lại sau!</h5>
+                                <%}%>
                             </div>
                         </div>
                     </div>
@@ -123,6 +131,7 @@
             // options: options
         });
     </script>
+    <script src="scripts/xemvideo.js"></script>
 
 </body>
 

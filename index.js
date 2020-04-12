@@ -110,8 +110,8 @@ connect.connect(function(err) {
     console.log("Connected!");
 });
 
-var lines = process.stdout.getWindowSize()[1];
-for (var i = 0; i < lines; i++) {
+let lines = process.stdout.getWindowSize()[1];
+for (let i = 0; i < lines; i++) {
     console.log('\r\n');
 }
 
@@ -256,7 +256,7 @@ app.get('/register', (req, res) => {
     res.render('trangchu/register.ejs');
 })
 
-app.post('/register', async (req, res) => {
+app.post('/register', async (req, res) => { // phải thêm catpcha khúc này
     if (!validForm(req.body, ['name', 'email', 'username', 'password'], res)) return;
     let sqlMessages = new SQLMessage();
     let { name, username, password, email } = req.body;
@@ -315,7 +315,6 @@ app.get('/dashboard', (req, res) => {
             let linkvideoCount = count[1]['count(*)'];
             let linkcmtCount = count[2]['count(*)'];
             let quyen = req.session.permission;
-            console.log(quyen);
             res.render(`${quyen}/dashboard.ejs`, {
                 href: req.url,
                 name: req.session.name,
@@ -829,6 +828,9 @@ app.post('/linkcmt', (req, res) => {
 //========================MEMBER=============================
 
 app.use('/', (req, res, next) => {
+    req.session.permission = "member";
+    req.session.username = "khoadau";
+    req.session.name = "test name";
     if (req.session.permission == "member") {
         connect.query("SELECT `bonus` FROM `duyetcmt` WHERE `username` = ? AND verify = -1", [req.session.username], (error, bonusResult) => {
             connect.query("SELECT `money` FROM `account` WHERE `username` = ?", [req.session.username], (error, moneyResult) => {
@@ -914,10 +916,9 @@ app.get('/cmtvideo', (req, res) => {
             });
         })
     })
-
 })
 
-var addUrl = (req, url) => {
+let addCmt = (req, url) => {
     return new Promise((resolve, reject) => {
         connect.query("SELECT `cmt` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
             checkError(error, result, "doi array cmt");
@@ -933,7 +934,7 @@ var addUrl = (req, url) => {
     })
 }
 
-app.post('/cmtvideo', (req, res) => {
+app.post('/cmtvideo', (req, res) => { // phải thêm catpcha khúc này
     if (!req.session.cmtvideo)
         return res.send({
             alert: "dialog",
@@ -946,7 +947,7 @@ app.post('/cmtvideo', (req, res) => {
     if (!validForm(req.body, ['cmtUrl'], res)) return;
     let { noidung, bonus, url } = req.session.cmtvideo;
     let { cmtUrl } = req.body;
-    addUrl(req, url).then((cmtArr) => {
+    addCmt(req, url).then((cmtArr) => {
         let sqlMessages = new SQLMessage();
         connect.query("INSERT INTO `duyetcmt` (`url`, `username`, `bonus`, `noidung`) VALUES (?, ?, ?, ?)", [cmtUrl, req.session.username, bonus, noidung], (error, result) => {
             sqlMessages.add(checkError(error, result, "insert vao bang duyetcmt"));
@@ -980,7 +981,7 @@ app.post('/cmtvideo', (req, res) => {
             alert: "dialog",
             data: {
                 title: "Lỗi!",
-                text: "Link cmt này không tồn tại! Hãy thử F5",
+                text: "Bạn đã cmt link này, hãy thử tải lại trang!",
                 icon: "error"
             }
         });
@@ -988,13 +989,130 @@ app.post('/cmtvideo', (req, res) => {
 })
 
 app.get('/xemvideo', (req, res) => {
-    let quyen = req.session.permission;
-    res.render(`${quyen}/xemvideo.ejs`, {
-        name: req.session.name,
-        href: '/xemvideo',
-        choduyet: req.session.choduyet,
-        money: req.session.money
-    });
+    connect.query("SELECT `video` FROM `account` WHERE `username` = ?", [req.session.username], (error, account) => {
+        let { video: videosWatched } = account[0];
+        try { videosWatched = JSON.parse(videosWatched); } catch (e) { videosWatched = [] }
+        connect.query("SELECT * FROM `linkvideo` ORDER BY `id` ASC", (error, result) => {
+            checkError(error, result, "lay linkvideo cho member");
+            let ableVideos = []; // tất cả các video available
+            let maxCount = 5;
+            let count = 0;
+            for (let r of result) {
+                if (count >= maxCount) // giới hạn count, tăng tốc độ khi query về mảng nhiều kinh khủng
+                    break;
+
+                let { url, minutes, bonus } = r;
+
+                if (videosWatched.indexOf(url) != -1) // nếu đã có rồi thì bỏ qua
+                    continue;
+
+                ableVideos.push({
+                    url,
+                    minutes,
+                    bonus
+                });
+            }
+
+            if (ableVideos.length <= 0) { // nếu dò hết mảng mà không có thì send cái này:
+                let quyen = req.session.permission;
+                return res.render(`${quyen}/xemvideo.ejs`, {
+                    name: req.session.name,
+                    href: '/xemvideo',
+                    choduyet: req.session.choduyet,
+                    money: req.session.money,
+                    none: true
+                });
+            }
+
+            let { url, minutes, bonus } = ableVideos[random.int(0, ableVideos.length - 1)];
+
+            req.session.xemvideo = {
+                url,
+                minutes,
+                bonus,
+                timeStart: 2 * Date.now()
+            }
+
+            let quyen = req.session.permission;
+            res.render(`${quyen}/xemvideo.ejs`, {
+                name: req.session.name,
+                href: '/xemvideo',
+                choduyet: req.session.choduyet,
+                money: req.session.money,
+                url,
+                minutes,
+                bonus
+            });
+        })
+    })
+})
+
+let addVideo = (req, url) => {
+    return new Promise((resolve, reject) => {
+        connect.query("SELECT `video` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
+            checkError(error, result, "doi array video");
+            let videoArr; // mảng video đã xem
+            try { videoArr = JSON.parse(result[0].video); } catch (e) { videoArr = [] }
+            if (videoArr.indexOf(url) != -1) { // đã có url đó trong list
+                reject(); // xem rồi thì reject
+            } else { //thêm video url nếu chưa xem
+                videoArr.push(url);
+                connect.query("UPDATE `account` SET `video` = ? WHERE `username` = ?", [JSON.stringify(videoArr), req.session.username], (error, result) => {
+                    resolve();
+                })
+            }
+        })
+    })
+}
+
+app.post('/xemvideo/stop', (req, res) => {
+    req.session.xemvideo.timeStart = 2 * Date.now();
+    res.sendStatus(200);
+})
+
+app.post('/xemvideo/start', (req, res) => {
+    req.session.xemvideo.timeStart = Date.now();
+    res.sendStatus(200);
+})
+
+app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí chưa"
+    if (!validForm(req.session.xemvideo, ['url', 'minutes', 'bonus', 'timeStart'], res)) return;
+
+    let { url, minutes, bonus, timeStart } = req.session.xemvideo;
+    let minutesCount = (Date.now() - timeStart) / 1000 / 60;
+    if (minutesCount >= minutes) { // nếu xem đủ thời gian
+        addVideo(req, url).then(() => {
+            connect.query('UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?', [bonus, req.session.username], (error, result) => {
+            	console.log('cong them cho user: ' + req.session.username + ' so tien: ' + bonus);
+                res.send({
+                    alert: "dialog",
+                    data: {
+                        title: "Chúc mừng!",
+                        text: "Số dư tài khoản của bạn được cộng thêm: " + bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'vnđ',
+                        icon: "success"
+                    }
+                })
+            });
+        }).catch(() => {
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi",
+                    text: "Có vẻ như bạn đã xem video này, vui lòng tải lại trang!",
+                    icon: "error"
+                }
+            })
+        })
+    } else { // nếu không xem đủ thời gian
+    	res.send({
+    	    alert: "dialog",
+    	    data: {
+    	        title: "Lỗi",
+    	        text: "Có vẻ như bạn đã không xem hết thời gian quy định của video, vui lòng thử lại!",
+    	        icon: "error"
+    	    }
+    	})
+    }
 })
 
 app.get('/ruttien', (req, res) => {
