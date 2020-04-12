@@ -1081,7 +1081,7 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
     let { url, minutes, bonus, timeStart } = req.session.xemvideo;
     let minutesCount = (Date.now() - timeStart) / 1000 / 60;
     if (minutesCount >= minutes) { // nếu xem đủ thời gian
-        addVideo(req, url).then(() => {
+        addVideo(req, url).then(() => { // nếu chưa xem video
             connect.query('UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?', [bonus, req.session.username], (error, result) => {
             	console.log('cong them cho user: ' + req.session.username + ' so tien: ' + bonus);
                 res.send({
@@ -1093,7 +1093,7 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
                     }
                 })
             });
-        }).catch(() => {
+        }).catch(() => { // nếu đã xem video rồi
             res.send({
                 alert: "dialog",
                 data: {
@@ -1103,6 +1103,7 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
                 }
             })
         })
+        req.session.xemvideo = undefined;
     } else { // nếu không xem đủ thời gian
     	res.send({
     	    alert: "dialog",
