@@ -396,7 +396,7 @@ app.post('/quanliuser/duyet', (req, res) => {
             failed = true;
         connect.query("SELECT `username` FROM `account` WHERE `madonhang` = ? LIMIT 1", [req.body.madonhang], (error, result) => {
             checkError(error, result, 'tim ten theo ma don hang');
-            let username = "không tìm thấy"
+            let username = "không tìm thấy";
             if (result.length > 0)
                 username = result[0].username;
             res.send({
@@ -547,8 +547,10 @@ app.post('/checkcmt', (req, res) => {
         if (result.affectedRows > 0) {
             if (verify == 1) {
                 connect.query("SELECT * FROM `duyetcmt` WHERE `id` = ?", [id], (error, duyetResult) => {
-                    connect.query("UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?", [duyetResult[0].bonus, duyetResult[0].username]);
-                    console.log('cong them cho user: ' + duyetResult[0].username + ' so tien: ' + duyetResult[0].bonus);
+                    if (duyetResult.length > 0) {
+                        connect.query("UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?", [duyetResult[0].bonus, duyetResult[0].username]);
+                        console.log('cong them cho user: ' + duyetResult[0].username + ' so tien: ' + duyetResult[0].bonus);
+                    }
                 })
             }
             res.send({
@@ -677,6 +679,7 @@ app.post('/listlink/edit', (req, res) => {
 app.get('/profile', (req, res) => {
     if (!req.session.username) return res.send('where is username?');
     connect.query("SELECT * FROM `account` WHERE `username` = ? LIMIT 1", [req.session.username], (error, result) => {
+        //khúc này không check length result vì middleware đã kiểm tra rồi
         checkError(error, result, 'lay profile theo username')
         let quyen = req.session.permission;
         let { username, name, email } = result[0];
@@ -848,13 +851,27 @@ app.use('/', (req, res, next) => {
 
 app.get('/home', (req, res) => {
     let quyen = req.session.permission;
-    connect.query("SELECT count(*) FROM `duyetcmt` WHERE `username` = ? AND verify = 1", [req.session.username], (error, result) => {
+    connect.query("SELECT `cmt` FROM `account` WHERE `username` = ? UNION ALL SELECT `video` FROM `account` WHERE `username` = ?", [req.session.username, req.session.username], (error, result) => {
+        let cmtArr, videoArr;
+        try {
+            cmtArr = JSON.parse(result[0]['cmt']);
+        } catch (e) {
+            cmtArr = [];
+            connect.query("UPDATE `account` SET `cmt` = '[]' WHERE `username` = ?", [req.session.username]);
+        }
+        try {
+            videoArr = JSON.parse(result[1]['cmt']); // mượn cột cmt (xài UNION ALL)
+        } catch (e) {
+            videoArr = [];
+            connect.query("UPDATE `account` SET `video` = '[]' WHERE `username` = ?", [req.session.username]);
+        }
         res.render(`${quyen}/home.ejs`, {
             name: req.session.name,
             href: '/home',
             choduyet: req.session.choduyet,
             money: req.session.money,
-            solinkbinhluan: result[0]['count(*)']
+            solinkdabinhluan: cmtArr.length,
+            sovideodaxem: videoArr.length
         });
     })
 })
@@ -922,6 +939,8 @@ let addCmt = (req, url) => {
     return new Promise((resolve, reject) => {
         connect.query("SELECT `cmt` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
             checkError(error, result, "doi array cmt");
+            if (result.length <= 0)
+            	reject();
             let cmtArr;
             try { cmtArr = JSON.parse(result[0].cmt); } catch (e) { cmtArr = [] }
             if (cmtArr.indexOf(url) != -1) {
@@ -1051,6 +1070,11 @@ let addVideo = (req, url) => {
     return new Promise((resolve, reject) => {
         connect.query("SELECT `video` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
             checkError(error, result, "doi array video");
+
+            if (result.length <= 0) {
+                reject();
+            }
+
             let videoArr; // mảng video đã xem
             try { videoArr = JSON.parse(result[0].video); } catch (e) { videoArr = [] }
             if (videoArr.indexOf(url) != -1) { // đã có url đó trong list
@@ -1083,7 +1107,7 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
     if (minutesCount >= minutes) { // nếu xem đủ thời gian
         addVideo(req, url).then(() => { // nếu chưa xem video
             connect.query('UPDATE `account` SET `money` = `money` + ? WHERE `username` = ?', [bonus, req.session.username], (error, result) => {
-            	console.log('cong them cho user: ' + req.session.username + ' so tien: ' + bonus);
+                console.log('cong them cho user: ' + req.session.username + ' so tien: ' + bonus);
                 res.send({
                     alert: "dialog",
                     data: {
@@ -1105,14 +1129,14 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
         })
         req.session.xemvideo = undefined;
     } else { // nếu không xem đủ thời gian
-    	res.send({
-    	    alert: "dialog",
-    	    data: {
-    	        title: "Lỗi",
-    	        text: "Có vẻ như bạn đã không xem hết thời gian quy định của video, vui lòng thử lại!",
-    	        icon: "error"
-    	    }
-    	})
+        res.send({
+            alert: "dialog",
+            data: {
+                title: "Lỗi",
+                text: "Có vẻ như bạn đã không xem hết thời gian quy định của video, vui lòng thử lại!",
+                icon: "error"
+            }
+        })
     }
 })
 
