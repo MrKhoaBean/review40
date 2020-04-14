@@ -2,32 +2,29 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<!-- start linking  -->
-	<link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
-	<link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet">
-	<link rel="stylesheet" href="css/app.css">
-	<!-- icon -->
-	<link rel="icon" href="img/log.png">
-	<!-- end linking -->
-	<title>Kiếm tiền 4.0 - Quản lí user</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- start linking  -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <!-- icon -->
+    <link rel="icon" href="img/log.png">
+    <!-- end linking -->
+    <title>Kiếm tiền 4.0 - Quản lí user</title>
 </head>
 
 <body>
-	<!-- start admin -->
-	<section id="admin">
-		
-		<%- include('partials/sidebar.ejs', {href}) %>
-
-		<!-- start content -->
-		<div class="content">
-			<!-- start content head -->
-			<div class="head">
+    <!-- start admin -->
+    <section id="admin">
+        <%- include('partials/sidebar.ejs', {href}) %>
+        <!-- start content -->
+        <div class="content">
+            <!-- start content head -->
+            <div class="head">
                 <!-- head top -->
                 <%-include('partials/head_top.ejs', {name})%>
                 <!-- end head top -->
@@ -35,80 +32,67 @@
                 <%-include('partials/head_bottom.ejs', {href})%>
                 <!-- end head bottom -->
             </div>
-			<!-- end content head -->
-			<!-- start with the real content -->
-			<div id="real">
-				<!-- start content here -->
-				<div class="wrap">
-					<section class="app-content" id="contact">
-						<div class="row">
-							<div class="col-md-2">
-								<div class="" id="contacts-action-panel">
-									<div class="action-panel-toggle" data-toggle="class"
-										data-target="#contacts-action-panel" data-class="open">
-										<i class="fa fa-chevron-right"></i>
-										<i class="fa fa-chevron-left"></i>
-										
-									</div><!-- .action-panel-toggle -->
-									<div class="m-b-lg">
-										<a href="#" data-toggle="modal" data-target="#contactModal"
-											class="btn btn-primary btn-block" id="them_nguoi" style="word-wrap: break-word;">Thêm người</a>
-									</div>
-									<!-- contact category list -->
-									<div id="categories-list" class="app-actions-list scrollable-container">
-										<div class="list-group">
-											<a href="#" id="getalllist" class="list-group-item">
-												<i class="fa fa-inbox text-color m-r-xs"></i>
-												<span>Hiển thị tất cả</span>
-											</a>
-										</div><!-- .list-group -->
-
-
-										
-									</div><!-- #categories-list -->
-									<div class="m-h-md">
-									</div>
-								</div><!-- .app-action-panel -->
-							</div><!-- END column -->
-
-							<div class="col-md-10">
-								<div class="row">
-									<div class="col-md-12">
-										<div class="mail-toolbar m-b-lg">
-
-
-											<div class="btn-group pull-right" role="group">
-												<a id="previous_page" class="btn btn-default"><i
-														class="fa fa-chevron-left"></i></a>
-												<a id="next_page" class="btn btn-default"><i
-														class="fa fa-chevron-right"></i></a>
-												
-											</div>
-											<p class=" ml-2 mt-3">Trang <span id="page">1</span> trong tổng số <%=Math.ceil(count/6)%> trang</p>
-										</div>
-									</div><!-- END column -->
-								</div><!-- .row -->
-								
-								<div id="contacts-list" class="row">
-								</div><!-- #contacts-list -->
-							</div><!-- END column -->
-						</div><!-- .row -->
-					</section><!-- .app-content -->
-				</div><!-- .wrap -->
-
-				<!-- parabẻn -->
-				<!-- new category Modal -->
-				<!-- end content -->
-			</div>
-			<!-- end the real content -->
-		</div>
-		<!-- end content -->
-	</section>
-	<!-- end admin -->
-	<%-include('partials/modal.html')%>
-	<%-include('partials/footer.html')%>
-	<script src="https://cdn.jsdelivr.net/npm/ejs@3.0.2/ejs.min.js"></script>
-	<script src="js/quanliuser.js"></script>
+            <!-- end content head -->
+            <!-- start with the real content -->
+            <div id="real">
+                <!-- start content here -->
+                <div class="wrap">
+                    <section class="app-content" id="contact">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="" id="contacts-action-panel">
+                                    <div class="action-panel-toggle" data-toggle="class" data-target="#contacts-action-panel" data-class="open">
+                                        <i class="fa fa-chevron-right"></i>
+                                        <i class="fa fa-chevron-left"></i>
+                                    </div><!-- .action-panel-toggle -->
+                                    <div class="m-b-lg">
+                                        <a href="#" data-toggle="modal" data-target="#contactModal" class="btn btn-primary btn-block" id="them_nguoi" style="word-wrap: break-word;">Thêm người</a>
+                                    </div>
+                                    <!-- contact category list -->
+                                    <div id="categories-list" class="app-actions-list scrollable-container">
+                                        <div class="list-group">
+                                            <a href="#" id="getalllist" class="list-group-item">
+                                                <i class="fa fa-inbox text-color m-r-xs"></i>
+                                                <span>Hiển thị tất cả</span>
+                                            </a>
+                                        </div><!-- .list-group -->
+                                    </div><!-- #categories-list -->
+                                    <div class="m-h-md">
+                                    </div>
+                                </div><!-- .app-action-panel -->
+                            </div><!-- END column -->
+                            <div class="col-md-10">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mail-toolbar m-b-lg">
+                                            <div class="btn-group pull-right" role="group">
+                                                <a id="previous_page" class="btn btn-default"><i class="fa fa-chevron-left"></i></a>
+                                                <a id="next_page" class="btn btn-default"><i class="fa fa-chevron-right"></i></a>
+                                            </div>
+                                            <p class=" ml-2 mt-3">Trang <span id="page">1</span> trong tổng số
+                                                <%=Math.ceil(count/6)%> trang</p>
+                                        </div>
+                                    </div><!-- END column -->
+                                </div><!-- .row -->
+                                <div id="contacts-list" class="row">
+                                </div><!-- #contacts-list -->
+                            </div><!-- END column -->
+                        </div><!-- .row -->
+                    </section><!-- .app-content -->
+                </div><!-- .wrap -->
+                <!-- parabẻn -->
+                <!-- new category Modal -->
+                <!-- end content -->
+            </div>
+            <!-- end the real content -->
+        </div>
+        <!-- end content -->
+    </section>
+    <!-- end admin -->
+    <%-include('partials/modal.html')%>
+    <%-include('partials/footer.html')%>
+    <script src="https://cdn.jsdelivr.net/npm/ejs@3.0.2/ejs.min.js"></script>
+    <script src="js/quanliuser.js"></script>
 </body>
 
 </html>

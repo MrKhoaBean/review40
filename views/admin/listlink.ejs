@@ -19,40 +19,39 @@
     <!-- end linking -->
     <title>Kiếm tiền 4.0 - Danh sách link</title>
     <style>
-        input[type='search'] {
-            border: 1px solid #3462eb;
-            border-radius: 7px;
-            padding: 5px;
-        }
-        select[name="example_length"] {
-            border: 1px solid #3462eb;
-            border-radius: 7px;
-            padding: 5px;
-        }
-        .paginate_button{
-            border: 0px solid #3462eb!important;
-        }
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover{
-            border: 0px!important;
-            background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(58,123,213,1) 100%)!important;
-        }
-        .paginate_button.current{
-            background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(58,123,213,1) 100%)!important;
-            border: 0px!important;
-            color:#fff!important;
-        }
-        
+    input[type='search'] {
+        border: 1px solid #3462eb;
+        border-radius: 7px;
+        padding: 5px;
+    }
+
+    select[name="example_length"] {
+        border: 1px solid #3462eb;
+        border-radius: 7px;
+        padding: 5px;
+    }
+
+    .paginate_button {
+        border: 0px solid #3462eb !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        border: 0px !important;
+        background: linear-gradient(90deg, rgba(0, 210, 255, 1) 0%, rgba(58, 123, 213, 1) 100%) !important;
+    }
+
+    .paginate_button.current {
+        background: linear-gradient(90deg, rgba(0, 210, 255, 1) 0%, rgba(58, 123, 213, 1) 100%) !important;
+        border: 0px !important;
+        color: #fff !important;
+    }
     </style>
 </head>
 
 <body>
-
-
     <!-- start admin -->
     <section id="admin">
-        
         <%- include('partials/sidebar.ejs', {href}) %>
-
         <!-- start content -->
         <div class="content">
             <!-- start content head -->
@@ -71,7 +70,6 @@
                     <div class="col-12">
                         <div class="card shadow-dark lift">
                             <div class="card-body table-responsive">
-
                                 <table id="example" class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
@@ -83,31 +81,37 @@
                                     </thead>
                                     <tbody>
                                         <% for (let link of list) {
-                                            let type = link.minutes?"Video":"Comment";
-                                            let {id, url, bonus} = link;
-                                            bonus = bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                            if (type == "Video") { %>
-                                                <tr id="<%-type%><%-id%>_tr">
-                                                    <td>Video</td>
-                                                    <td id="<%-type%><%-id%>row-1"><%-url%></td>
-                                                    <td id="<%-type%><%-id%>row-2"><%-bonus%>đ</td>
-                                                    <td>
-                                                        <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
-                                                        <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
-                                                    </td>
-                                                </tr>
-                                            <%}
-                                            if (type == "Comment") { %>
-                                                <tr id="<%-type%><%-id%>_tr">
-                                                    <td>Comment</td>
-                                                    <td id="<%-type%><%-id%>row-1"><%-url%></td>
-                                                    <td id="<%-type%><%-id%>row-2"><%-bonus%>đ</td>
-                                                    <td>
-                                                        <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
-                                                        <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
-                                                    </td>
-                                                </tr>
-                                            <%}%>
+											let type = link.minutes?"Video":"Comment";
+											let {id, url, bonus} = link;
+											bonus = bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+											if (type == "Video") { %>
+                                        <tr id="<%-type%><%-id%>_tr">
+                                            <td>Video</td>
+                                            <td id="<%-type%><%-id%>row-1">
+                                                <%-url%>
+                                            </td>
+                                            <td id="<%-type%><%-id%>row-2">
+                                                <%-bonus%>đ</td>
+                                            <td>
+                                                <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
+                                                <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
+                                            </td>
+                                        </tr>
+                                        <%}
+											if (type == "Comment") { %>
+                                        <tr id="<%-type%><%-id%>_tr">
+                                            <td>Comment</td>
+                                            <td id="<%-type%><%-id%>row-1">
+                                                <%-url%>
+                                            </td>
+                                            <td id="<%-type%><%-id%>row-2">
+                                                <%-bonus%>đ</td>
+                                            <td>
+                                                <button onclick="xoa('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Xóa</button>
+                                                <button id="<%-type%><%-id%>_button" onclick="sua('<%-id%>', '<%-type%>')" class="btn btn-primary mb-2">Sửa</button>
+                                            </td>
+                                        </tr>
+                                        <%}%>
                                         <%}%>
                                     </tbody>
                                     <tfoot>
@@ -133,13 +137,15 @@
     <%-include('partials/modal.html')%>
     <%-include('partials/footer.html')%>
     <!-- <script src="js/highcharts.js"></script>
-    <script src="js/chart.js"></script> -->
+	<script src="js/chart.js"></script> -->
     <script src="js/listlink.js"></script>
     <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-    <script>$(document).ready( function () {
+    <script>
+    $(document).ready(function() {
         $('#example').DataTable();
-    } );</script>
+    });
+    </script>
     <!-- end screpting -->
 </body>
 

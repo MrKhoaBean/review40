@@ -53,15 +53,15 @@ var sua = function(id, type) {
             url: './edit',
             method: "POST",
             data
-        }).done(result=>{
-        	swal.fire(result.data).then(()=>{
-        		if (result.data.icon == "error")
-        			location.assign('.');
-        	});
-        	if (result.data.icon == "success") {
-        		$(`#${type}${id}row-1`).html(url);
-        		$(`#${type}${id}row-2`).html(bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+'đ');
-        	}
+        }).done(result => {
+            swal.fire(result.data).then(() => {
+                if (result.data.icon == "error")
+                    location.assign('.');
+            });
+            if (result.data.icon == "success") {
+                $(`#${type}${id}row-1`).html(url);
+                $(`#${type}${id}row-2`).html(bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'đ');
+            }
         })
     }
 

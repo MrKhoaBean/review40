@@ -43,30 +43,29 @@
                                 <div class="flickity-button-outset p-1" data-flickity='{"draggable": true,"pageDots": true}'>
                                     <% if (listCheck.length == 0) { %>
                                     <div class="wrap-question col-12 p-5" style="width: 100%; text-align: center;color: #7b01e9;">
-                                        <h2>HIỆN KHÔNG CÒN BÌNH LUẬN NÀO CẦN DUYỆT!</h2>
+                                        <h2>HIỆN KHÔNG CÒN GIAO DỊCH NÀO CẦN DUYỆT!</h2>
                                     </div>
                                     <% } %>
                                     <% for (let i = 0; i<listCheck.length; i++) {
-													 let {id, url, username, bonus, noidung} = listCheck[i];
-													 bonus = bonus.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-												%>
+										let {id, username, amount, thongtin} = listCheck[i];
+										amount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+									%>
                                     <div id="form<%-id%>" class="wrap-question col-12 p-5" style="width: 100%;">
-                                        <h4 class="card-title text-body">Link bình luận: <a target="_blank" href="<%-url%>" style="text-transform: lowercase; word-wrap: break-word;">CLICK ME</a> </h4>
                                         <p class="card-text" style="text-transform: unset;">
                                             Tên người dùng:
                                             <%-username%>
                                         </p>
                                         <p class="card-text" style="text-transform: unset;">
-                                            Số tiền được nhận khi bình luận đúng:
-                                            <%-bonus%>đ
+                                            Số tiền muốn rút:
+                                            <%-amount%>đ
                                         </p>
                                         <p class="card-text" style="text-transform: unset;">
-                                            Nội dung cần bình luận: <code>
-                                                <%-noidung%></code>
+                                            Thông tin chuyển khoản: <code>
+                                                <%-thongtin%></code>
                                         </p>
                                         <div style="width: 100%; text-align: center;">
-                                            <button id="true" onclick="duyet('<%-id%>', true)" class="btn btn-primary mb-3 mt-3" title="Xác nhận đúng và cộng tiền">Bình Luận Đúng</button>
-                                            <button id="false" onclick="duyet('<%-id%>', false)" class="btn btn-danger">Bình Luận Sai</button>
+                                            <button id="true" onclick="duyet('<%-id%>', true)" class="btn btn-primary mb-3 mt-3" title="Xác nhận đã chuyển khoản và trừ số dư của họ">Đã chuyển khoản</button>
+                                            <button id="false" onclick="duyet('<%-id%>', false)" class="btn btn-danger">Hủy bỏ</button>
                                         </div>
                                     </div>
                                     <%}%>
@@ -86,7 +85,7 @@
     <%-include('partials/footer.html')%>
     <!-- <script src="js/highcharts.js"></script>
 	 <script src="js/chart.js"></script> -->
-    <script src="js/checkcmt.js"></script>
+    <script src="js/giaodich.js"></script>
     <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
     <!-- end screpting -->
 </body>

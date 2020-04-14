@@ -1,29 +1,33 @@
-class SQLMessage {
-    constructor() {
-        this.arr = [];
-    }
-
-    add(text) {
-        if (!!text)
-            this.arr.push(text);
-    }
-
-    toArray() {
-        return this.arr;
+const pack = {
+    anxin: {
+        icon: 'mặt buồn, /khóc lóc các thứ/',
+        title: 'Anh ơi tha cho em ạ, đừng check bug web của em hiu hiu',
+        text: "làm web này lâu lắm đó anh ạ :("
+    },
+    choccho: {
+        icon: 'success',
+        title: 'Bạn đã sql injection thành công!',
+        text: 'mà đợi đã :D'
+    },
+    thamhai: {
+        icon: ":((((((",
+        title: "THA EM ANH ƠIIIII :((((( Em chỉ là 1 thằng nhóc da đen trẻ trâu học hax facebook thôi ạ :(((",
+        text: " mong anh tha em, đừng hax web của em kẻo boss chửi ạ T_T"
+    },
+    binhthuong: {
+        icon: "error",
+        title: "Lỗi!",
+        text: "BAD REQUEST"
     }
 }
 
 function validForm(body, checkList, res) { // test lại những ô cần thiết có rổng hay ko
     let isValid = true;
     for (let e of checkList)
-        if (!body[e]) {
+        if (!body[e]) { // khúc này check mấy anh hacker đẹp giai hack sql injection
             res.send({
                 alert: 'dialog',
-                data: {
-                    icon: 'success',
-                    title: 'Bạn đã sql injection thành công!',
-                    text: 'mà đợi đã :D'
-                }
+                data: pack['thamhai']
             })
             isValid = false;
             break;
@@ -83,6 +87,21 @@ function checkError(error, result, where) {
     }
 }
 
+class SQLMessage {
+    constructor() {
+        this.arr = [];
+    }
+
+    add(text) {
+        if (!!text)
+            this.arr.push(text);
+    }
+
+    toArray() {
+        return this.arr;
+    }
+}
+
 const express = require('express');
 const app = express();
 const ejs = require('ejs');
@@ -91,6 +110,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const random = require('random');
 const md5 = require('md5');
+const vigenere = require('vigenere');
 const { v1: uuidv1 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
@@ -147,15 +167,15 @@ function prepareStaticFlat(config) {
         }
     })
 }
-
+// app.use(express.limit('2mb')); 
 app.set('view engine', 'ejs')
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.json({ limit: '1kb' })); // giới hạn dung lượng request
+app.use(bodyParser.urlencoded({ limit: '1kb', extended: true }));
 app.use(cookieParser());
 app.use(session({
     resave: true,
     saveUninitialized: true,
-    secret: 'somesecret',
+    secret: 'kiemtien40.com',
     cookie: { maxAge: 1000 * 60 * 60 }
 }));
 
@@ -390,15 +410,36 @@ app.post('/quanliuser/duyet', (req, res) => {
         checkError(error, result, 'duyet thanh vien');
 
         affectedRows = result.affectedRows;
-        if (affectedRows > 0)
+        if (affectedRows > 0) { // đổi verify code thành công
             failed = false;
-        else
+        } else {
             failed = true;
+        }
+
+        //khúc này để lấy tên thằng đã duyệt thành công
         connect.query("SELECT `username` FROM `account` WHERE `madonhang` = ? LIMIT 1", [req.body.madonhang], (error, result) => {
             checkError(error, result, 'tim ten theo ma don hang');
-            let username = "không tìm thấy";
-            if (result.length > 0)
-                username = result[0].username;
+            let username;
+            if (result.length > 0) {
+                username = result[0].username || "<đã gặp lỗi>";
+
+                // khúc này cộng tiền cho thằng invite thành công
+                if (req.cookies.secret) { // kiểm tra xem có cookie invite ko
+                    res.clearCookie('secret');
+                    let inviter = unescape(vigenere.decode(req.cookies.secret, 'kiemtien40.comisdabestweb'));
+                    connect.query("SELECT `invited` FROM `account` WHERE `username` = ?", [inviter], (error, result) => {
+                        let invited;
+                        try {
+                            invited = JSON.parse(result[0].invited);
+                        } catch (e) {
+                            invited = [];
+                        }
+                        invited.push(username) // push vào mảng invited
+                        connect.query("UPDATE `account` SET `invited` = ? WHERE `username` = ?", [JSON.stringify(invited), inviter]);
+                        connect.query("UPDATE `account` SET `money` = `money` + 40000 WHERE `username` = ?", [inviter]);
+                    })
+                }
+            }
             res.send({
                 username,
                 failed
@@ -526,7 +567,7 @@ app.post('/quanliadmin/delete', (req, res) => {
 app.get('/checkcmt', (req, res) => {
     connect.query("SELECT * FROM `duyetcmt` WHERE `verify` = -1 ORDER BY `id` ASC", (error, result) => {
         checkError(error, result, "lay duyet cmt");
-        let quyen = 'admin';
+        let quyen = req.session.permission;
         res.render(`${quyen}/checkcmt.ejs`, {
             href: req.url,
             name: req.session.name,
@@ -569,9 +610,7 @@ app.post('/checkcmt', (req, res) => {
                 }
             })
         }
-
     })
-
 })
 
 app.get('/listlink', (req, res) => {
@@ -580,7 +619,7 @@ app.get('/listlink', (req, res) => {
         connect.query("SELECT * FROM `linkcmt` ORDER BY `id` DESC", (error, listCmt) => {
             list = listVideo.concat(listCmt);
             list.sort((a, b) => a.id - b.id);
-            let quyen = 'admin';
+            let quyen = req.session.permission;
             res.render(`${quyen}/listlink.ejs`, {
                 href: req.url,
                 name: req.session.name,
@@ -676,6 +715,56 @@ app.post('/listlink/edit', (req, res) => {
     })
 })
 
+app.get('/giaodich', (req, res) => {
+    connect.query("SELECT * FROM `giaodich` WHERE `verify` = -1 ORDER BY `id` ASC", (error, result) => {
+        checkError(error, result, "lay duyet cmt");
+        let quyen = req.session.permission;
+        res.render(`${quyen}/giaodich.ejs`, {
+            href: req.url,
+            name: req.session.name,
+            listCheck: result
+        });
+    })
+})
+
+app.post('/giaodich', (req, res) => {
+    if (!validForm(req.body, ['id', 'method', 'thongdiep'], res)) return;
+    let { id, method, thongdiep } = req.body;
+    let verify = 0;
+    if (method.toString() == "true")
+        verify = 1;
+    connect.query("UPDATE `giaodich` SET `verify` = ?, `thongdiep` = ? WHERE `id` = ? AND `verify` = -1", [verify, thongdiep, id], (error, result) => {
+        checkError(error, result, "duyet giao dich (true/false)");
+        if (result.affectedRows > 0) {
+            if (verify == 1) { // chuyển khoản thành công
+                connect.query("SELECT * FROM `giaodich` WHERE `id` = ?", [id], (error, gdResult) => { // get lại thông tin giao dịch
+                    if (gdResult.length > 0) {
+                        let { amount, username } = gdResult[0];
+                        connect.query("UPDATE `account` SET `money` = `money` - ? WHERE `username` = ?", [amount, username]);
+                        console.log('chuyen khoan cho user: ' + username + ' so tien: ' + amount);
+                    }
+                })
+            }
+            res.send({
+                alert: "dialog",
+                data: {
+                    icon: "success",
+                    title: "Thành công"
+                }
+            })
+        } else {
+            res.send({
+                alert: "dialog",
+                data: {
+                    icon: "warning",
+                    title: "Thông báo!",
+                    text: "Giao dịch này đã được phê duyệt!"
+                }
+            })
+        }
+    })
+})
+
 app.get('/profile', (req, res) => {
     if (!req.session.username) return res.send('where is username?');
     connect.query("SELECT * FROM `account` WHERE `username` = ? LIMIT 1", [req.session.username], (error, result) => {
@@ -754,7 +843,7 @@ app.post('/profile', (req, res) => {
 })
 
 app.get('/linkvideo', (req, res) => {
-    let quyen = 'admin';
+    let quyen = req.session.permission;
     res.render(`${quyen}/linkvideo.ejs`, {
         href: req.url,
         name: req.session.name
@@ -789,7 +878,7 @@ app.post('/linkvideo', (req, res) => {
 })
 
 app.get('/linkcmt', (req, res) => {
-    let quyen = 'admin';
+    let quyen = req.session.permission;
     res.render(`${quyen}/linkcmt.ejs`, {
         href: req.url,
         name: req.session.name
@@ -831,9 +920,9 @@ app.post('/linkcmt', (req, res) => {
 //========================MEMBER=============================
 
 app.use('/', (req, res, next) => {
-    req.session.permission = "member";
-    req.session.username = "khoadau";
-    req.session.name = "test name";
+    // req.session.permission = "member";
+    // req.session.username = "khoadau";
+    // req.session.name = "test name";
     if (req.session.permission == "member") {
         connect.query("SELECT `bonus` FROM `duyetcmt` WHERE `username` = ? AND verify = -1", [req.session.username], (error, bonusResult) => {
             connect.query("SELECT `money` FROM `account` WHERE `username` = ?", [req.session.username], (error, moneyResult) => {
@@ -851,27 +940,35 @@ app.use('/', (req, res, next) => {
 
 app.get('/home', (req, res) => {
     let quyen = req.session.permission;
-    connect.query("SELECT `cmt` FROM `account` WHERE `username` = ? UNION ALL SELECT `video` FROM `account` WHERE `username` = ?", [req.session.username, req.session.username], (error, result) => {
-        let cmtArr, videoArr;
-        try {
-            cmtArr = JSON.parse(result[0]['cmt']);
+    connect.query("SELECT * FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
+        let cmtArr, videoArr, invitedArr;
+        try { // số link bình luận
+            cmtArr = JSON.parse(result[0].cmt);
         } catch (e) {
             cmtArr = [];
-            connect.query("UPDATE `account` SET `cmt` = '[]' WHERE `username` = ?", [req.session.username]);
         }
-        try {
-            videoArr = JSON.parse(result[1]['cmt']); // mượn cột cmt (xài UNION ALL)
+
+        try { // số video đã xem
+            videoArr = JSON.parse(result[0].video);
         } catch (e) {
             videoArr = [];
-            connect.query("UPDATE `account` SET `video` = '[]' WHERE `username` = ?", [req.session.username]);
         }
+
+        try { // số người đã invite thành công
+            invitedArr = JSON.parse(result[0].invited);
+        } catch (e) {
+            invitedArr = [];
+        }
+
         res.render(`${quyen}/home.ejs`, {
             name: req.session.name,
+            username: req.session.username,
             href: '/home',
             choduyet: req.session.choduyet,
             money: req.session.money,
             solinkdabinhluan: cmtArr.length,
-            sovideodaxem: videoArr.length
+            sovideodaxem: videoArr.length,
+            invitedCount: invitedArr.length
         });
     })
 })
@@ -940,7 +1037,7 @@ let addCmt = (req, url) => {
         connect.query("SELECT `cmt` FROM `account` WHERE `username` = ?", [req.session.username], (error, result) => {
             checkError(error, result, "doi array cmt");
             if (result.length <= 0)
-            	reject();
+                reject();
             let cmtArr;
             try { cmtArr = JSON.parse(result[0].cmt); } catch (e) { cmtArr = [] }
             if (cmtArr.indexOf(url) != -1) {
@@ -1141,15 +1238,74 @@ app.post('/xemvideo', (req, res) => { // kiểm tra xem "xem video hợp lí ch�
 })
 
 app.get('/ruttien', (req, res) => {
-    let quyen = req.session.permission;
-    res.render(`${quyen}/ruttien.ejs`, {
-        name: req.session.name,
-        href: '/ruttien',
-        choduyet: req.session.choduyet,
-        money: req.session.money
-    });
+    connect.query("SELECT * FROM `giaodich` WHERE `username` = ? ORDER BY `id` DESC LIMIT 50", [req.session.username], (error, result) => {
+        checkError(error, result, "lay danh sach giao dich");
+        let quyen = req.session.permission;
+        res.render(`${quyen}/ruttien.ejs`, {
+            name: req.session.name,
+            href: '/ruttien',
+            choduyet: req.session.choduyet,
+            money: req.session.money,
+            listGD: result
+        });
+    })
 })
 
+app.post('/ruttien', (req, res) => {
+    if (!validForm(req.body, ['thongtin', 'amount'], res)) return;
+    connect.query("SELECT `money` FROM `account` WHERE `username` = ? UNION ALL SELECT SUM(`amount`) FROM `giaodich` WHERE `username` = ? AND `verify` = -1", [req.session.username, req.session.username], (error, result) => {
+        checkError(error, result, "check money de rut tien");
+        if (result.length > 0) {
+            let { thongtin, amount } = req.body;
+            let { money: myMoney } = result[0];
+            let { money: queueMoney } = result[1];
+            amount = (amount > myMoney) ? myMoney : amount;
+            if (myMoney > 0 && myMoney - queueMoney - amount >= 0) {
+                connect.query("INSERT INTO `giaodich` (`username`, `thongtin`, `amount`) VALUES (?, ?, ?)", [req.session.username, thongtin, amount]);
+                res.send({
+                    alert: "dialog",
+                    data: {
+                        title: "Thành công!",
+                        text: "Bạn đã tạo lệnh rút " + amount + "vnđ từ tài khoản, hãy chờ admin phê duyệt và chuyển khoản!",
+                        icon: "success"
+                    }
+                })
+            } else {
+                res.send({
+                    alert: "dialog",
+                    data: {
+                        title: "Thất bại!",
+                        text: "Số dư của bạn không đủ!",
+                        icon: "error"
+                    }
+                })
+            }
+
+        } else {
+            res.send({
+                alert: "dialog",
+                data: {
+                    title: "Lỗi",
+                    text: "Không tìm thấy tài khoản!",
+                    icon: "error"
+                }
+            })
+        }
+    })
+})
+
+app.use('/ref', (req, res) => {
+    let username = req.url.split('/')[1];
+    connect.query("SELECT `invited` FROM `account` WHERE `username` = ?", [username], (error, result) => {
+        if (result.length > 0) {
+            res.cookie('secret', vigenere.encode(escape(username), 'kiemtien40.comisdabestweb', {
+                maxAge: 1000 * 60 * 24 * 30
+            }));
+            res.send("<script>location.assign('/trangchu')</script>");
+        }
+    })
+    // res.sendStatus(200)
+})
 
 //==================END OF MEMBER==================
 

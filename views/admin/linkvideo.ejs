@@ -2,32 +2,29 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<!-- start linking  -->
-	<link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
-	<link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/app.css">
-	<!-- icon -->
-	<link rel="icon" href="img/log.png">
-	<!-- end linking -->
-	<title>Kiếm tiền 4.0 - Thêm link bình luận</title>
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- start linking  -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800,900" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <!-- icon -->
+    <link rel="icon" href="img/log.png">
+    <!-- end linking -->
+    <title>Kiếm tiền 4.0 - Thêm link bình luận</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
-	<!-- start admin -->
-	<section id="admin">
-		
-		<%- include('partials/sidebar.ejs', {href}) %>
-
-		<!-- start content -->
-		<div class="content">
-			<!-- start content head -->
-			<div class="head">
+    <!-- start admin -->
+    <section id="admin">
+        <%- include('partials/sidebar.ejs', {href}) %>
+        <!-- start content -->
+        <div class="content">
+            <!-- start content head -->
+            <div class="head">
                 <!-- head top -->
                 <%-include('partials/head_top.ejs', {name})%>
                 <!-- end head top -->
@@ -35,62 +32,60 @@
                 <%-include('partials/head_bottom.ejs', {href})%>
                 <!-- end head bottom -->
             </div>
-			<!-- end content head -->
-			<!-- start with the real content -->
-			<div id="real">
-				<!-- start content here -->
-				<div id="forms">
-					<div class="wrap card">
-						<section class="app-content">
-							<div class="row">
-								<div class="col-md-12">
-									<h3>Thêm Link Video Mới Cho Người Dùng</h3>
-									
-								</div>
-								<div class="col-lg-12">
-									<form id="form_linkvideo" class="form-horizontal">
-										<div class="form-group">
-											<label for="control-demo-1" class="col-sm-3">Link video: </label>
-											<div class="col-sm-12">
-												<input name="url" type="url" placeholder="https://www.youtube.com/watch?v=xxx" id="control-demo-1" class="form-control">
-											</div>
-										</div><!-- .form-group -->
-										<div class="form-group">
-											<label for="control-demo-1" class="col-sm-3">Số phút cần view: </label>
-											<div class="col-sm-12">
-												<input name="minutes" type="number" id="control-demo-1" class="form-control">
-											</div>
-										</div><!-- .form-group -->
-										<div class="form-group mb-3">
-											<label for="control-demo-1" class="col-12">Số tiền cho một bình luận (đơn vị <code>Đồng</code>): </label>
-											<div class="col-sm-12">
-												<input name="bonus" type="number" placeholder="1000" id="control-demo-1" class="form-control">
-											</div>
-										</div>
-										<div style="width: 100%; text-align: center;" class="mt-3">
-											<button type="submit" class="btn btn-primary">Thêm link</button>
-										</div>
-									</form>
-								</div>
-							</div><!-- END row -->
-						</section><!-- #dash-content -->
-					</div><!-- .wrap -->
-				</div>
-				<!-- end content -->
-			</div>
-			<!-- end the real content -->
-		</div>
-		<!-- end content -->
-	</section>
-	<!-- end admin -->
-	
+            <!-- end content head -->
+            <!-- start with the real content -->
+            <div id="real">
+                <!-- start content here -->
+                <div id="forms">
+                    <div class="wrap card">
+                        <section class="app-content">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h3>Thêm Link Video Mới Cho Người Dùng</h3>
+                                </div>
+                                <div class="col-lg-12">
+                                    <form id="form_linkvideo" class="form-horizontal">
+                                        <div class="form-group">
+                                            <label for="control-demo-1" class="col-sm-3">Link video: </label>
+                                            <div class="col-sm-12">
+                                                <input name="url" type="url" placeholder="https://www.youtube.com/watch?v=xxx" id="control-demo-1" class="form-control">
+                                            </div>
+                                        </div><!-- .form-group -->
+                                        <div class="form-group">
+                                            <label for="control-demo-1" class="col-sm-3">Số phút cần view: </label>
+                                            <div class="col-sm-12">
+                                                <input name="minutes" type="number" id="control-demo-1" class="form-control">
+                                            </div>
+                                        </div><!-- .form-group -->
+                                        <div class="form-group mb-3">
+                                            <label for="control-demo-1" class="col-12">Số tiền cho một bình luận (đơn vị <code>Đồng</code>): </label>
+                                            <div class="col-sm-12">
+                                                <input name="bonus" type="number" placeholder="1000" id="control-demo-1" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div style="width: 100%; text-align: center;" class="mt-3">
+                                            <button type="submit" class="btn btn-primary">Thêm link</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div><!-- END row -->
+                        </section><!-- #dash-content -->
+                    </div><!-- .wrap -->
+                </div>
+                <!-- end content -->
+            </div>
+            <!-- end the real content -->
+        </div>
+        <!-- end content -->
+    </section>
+    <!-- end admin -->
     <!-- start screpting -->
     <%-include('partials/modal.html')%>
     <%-include('partials/footer.html')%>
-	<script src="js/linkvideo.js"></script> -->
-	<!-- <script src="js/highcharts.js"></script>
+    <script src="js/linkvideo.js"></script> -->
+    <!-- <script src="js/highcharts.js"></script>
 	<script src="js/chart.js"></script> -->
-	<!-- end screpting -->
+    <!-- end screpting -->
 </body>
 
 </html>

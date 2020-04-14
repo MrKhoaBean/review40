@@ -5,12 +5,16 @@
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item"><a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="/xemvideo">Xem video</a></li>
+                <li class="nav-item"><a class="nav-link" href="/xemvideo">Xem Video</a></li>
                 <li class="nav-item"><a class="nav-link" href="/cmtvideo">Bình Luận</a></li>
-                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="https://designrevision.com" id="navbarDropdownMenuLink-7" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello <%-name%>!</a>
+                <li class="nav-item"><a class="nav-link" href="/ruttien">Rút Tiền</a></li>
+                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="https://designrevision.com" id="navbarDropdownMenuLink-7" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello
+                        <%-name%>!</a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink-7">
-                        <a class="dropdown-item">Chờ duyệt: <%-choduyet.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")%>đ</a>
-                        <a class="dropdown-item">Số dư: <%-money.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")%>đ</a>
+                        <a class="dropdown-item">Chờ duyệt:
+                            <%-choduyet.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")%>đ</a>
+                        <a class="dropdown-item">Số dư:
+                            <%-money.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")%>đ</a>
                         <a class="dropdown-item" href="#">Profile</a> <a class="dropdown-item" href="/logout">Logout</a>
                     </div>
                 </li>
@@ -21,17 +25,17 @@
 <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
 <script>
-    $("#navbarNavDropdown-7 li a[href='<%=href%>']").addClass('active');
+$("#navbarNavDropdown-7 li a[href='<%=href%>']").addClass('active');
 
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      onOpen: (toast) => {
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer)
         toast.addEventListener('mouseleave', Swal.resumeTimer)
-      }
-    })
+    }
+})
 </script>
