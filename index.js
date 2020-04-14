@@ -118,11 +118,18 @@ const PORT = 7777;
 
 const mysql = require('mysql');
 
+// const connect = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "",
+//     database: 'kiemtien40'
+// });
+
 const connect = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: 'kiemtien40'
+    host: "remotemysql.com",
+    user: "i6lHk4oqRJ",
+    password: "muH1hYShn7",
+    database: 'i6lHk4oqRJ'
 });
 
 connect.connect(function(err) {
