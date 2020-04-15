@@ -137,10 +137,10 @@ connect.connect(function(err) {
     console.log("Connected!");
 });
 
-let lines = process.stdout.getWindowSize()[1];
-for (let i = 0; i < lines; i++) {
-    console.log('\r\n');
-}
+// let lines = process.stdout.getWindowSize()[1];
+// for (let i = 0; i < lines; i++) {
+//     console.log('\r\n');
+// }
 
 let checkLoggedIn = function(req, res, next) {
     if (!req.session.username) // kiểm tra login chưa nếu chưa thì phải login
