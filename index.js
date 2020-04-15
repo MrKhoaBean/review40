@@ -114,7 +114,7 @@ const vigenere = require('vigenere');
 const { v1: uuidv1 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
-const PORT = 7777;
+const PORT = process.env.PORT || 7777;
 
 const mysql = require('mysql');
 
